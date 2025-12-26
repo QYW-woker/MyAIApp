@@ -20,6 +20,7 @@ import com.myaiapp.ui.screens.settings.BookManageScreen
 import com.myaiapp.ui.screens.settings.CategoryManageScreen
 import com.myaiapp.ui.screens.settings.ImportScreen
 import com.myaiapp.ui.screens.settings.ReminderSettingsScreen
+import com.myaiapp.ui.screens.settings.CurrencySettingsScreen
 import com.myaiapp.ui.screens.search.SearchScreen
 import com.myaiapp.ui.screens.export.ExportScreen
 import com.myaiapp.ui.screens.statistics.StatisticsScreen
@@ -45,6 +46,7 @@ object Routes {
     const val SEARCH = "search"
     const val EXPORT = "export"
     const val REMINDER_SETTINGS = "reminder_settings"
+    const val CURRENCY_SETTINGS = "currency_settings"
 
     // 带参数的路由
     const val RECORD_EDIT = "record/{transactionId}"
@@ -161,7 +163,8 @@ fun AppNavGraph(
                 onNavigateToBackup = { navController.navigate(Routes.BACKUP) },
                 onNavigateToImport = { navController.navigate(Routes.IMPORT) },
                 onNavigateToExport = { navController.navigate(Routes.EXPORT) },
-                onNavigateToReminder = { navController.navigate(Routes.REMINDER_SETTINGS) }
+                onNavigateToReminder = { navController.navigate(Routes.REMINDER_SETTINGS) },
+                onNavigateToCurrency = { navController.navigate(Routes.CURRENCY_SETTINGS) }
             )
         }
 
@@ -220,6 +223,13 @@ fun AppNavGraph(
         // 提醒设置
         composable(Routes.REMINDER_SETTINGS) {
             ReminderSettingsScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        // 货币设置
+        composable(Routes.CURRENCY_SETTINGS) {
+            CurrencySettingsScreen(
                 onBack = { navController.popBackStack() }
             )
         }

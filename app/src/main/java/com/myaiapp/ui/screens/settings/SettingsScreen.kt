@@ -29,6 +29,7 @@ fun SettingsScreen(
     onNavigateToImport: () -> Unit,
     onNavigateToExport: () -> Unit,
     onNavigateToReminder: () -> Unit,
+    onNavigateToCurrency: () -> Unit,
     viewModel: SettingsViewModel = viewModel(factory = SettingsViewModelFactory(LocalContext.current))
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -138,9 +139,9 @@ fun SettingsScreen(
                     Divider(modifier = Modifier.padding(start = 56.dp), color = AppColors.Gray100)
                     SettingsItem(
                         icon = Icons.Outlined.CurrencyExchange,
-                        title = "默认货币",
-                        subtitle = uiState.defaultCurrency,
-                        onClick = { /* TODO: Show currency picker */ }
+                        title = "货币设置",
+                        subtitle = "默认: ${uiState.defaultCurrency}",
+                        onClick = onNavigateToCurrency
                     )
                 }
             }
