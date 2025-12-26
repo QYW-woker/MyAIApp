@@ -112,9 +112,127 @@ fun StatisticsScreen(
                                 color = AppColors.Gray500
                             )
                         }
+                        // 趋势对比
+                        if (uiState.previousPeriodAmount > 0 || uiState.totalAmount > 0) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            TrendIndicator(
+                                currentValue = uiState.totalAmount,
+                                previousValue = uiState.previousPeriodAmount
+                            )
+                        }
                     }
                 }
-                Spacer(modifier = Modifier.height(AppDimens.SpaceXL))
+                Spacer(modifier = Modifier.height(AppDimens.SpaceLG))
+            }
+
+            // 趋势图表
+            if (uiState.dailyData.isNotEmpty() || uiState.monthlyData.isNotEmpty()) {
+                item {
+                    AppCard(
+                        modifier = Modifier.padding(horizontal = AppDimens.SpaceLG)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(AppDimens.CardPadding)
+                        ) {
+                            Text(
+                                text = when (uiState.periodIndex) {
+                                    0 -> "本周趋势"
+                                    1 -> "近7日趋势"
+                                    else -> "月度趋势"
+                                },
+                                style = AppTypography.Title3,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            if (uiState.periodIndex == 2 && uiState.monthlyData.isNotEmpty()) {
+                                // 年度统计 - 柱状图
+                                BarChart(
+                                    data = uiState.monthlyData.map { data ->
+                                        BarChartData(
+                                            label = data.label.replace("月", ""),
+                                            value = data.amount,
+                                            color = if (uiState.typeIndex == 0) AppColors.Red else AppColors.Green
+                                        )
+                                    },
+                                    height = 160.dp,
+                                    barWidth = 20.dp
+                                )
+                            } else if (uiState.dailyData.isNotEmpty()) {
+                                // 周/月统计 - 折线图
+                                LineChart(
+                                    data = uiState.dailyData.map { data ->
+                                        LineChartPoint(
+                                            label = data.label,
+                                            value = data.amount
+                                        )
+                                    },
+                                    height = 160.dp,
+                                    lineColor = if (uiState.typeIndex == 0) AppColors.Red else AppColors.Green,
+                                    fillColor = if (uiState.typeIndex == 0)
+                                        AppColors.Red.copy(alpha = 0.1f)
+                                    else
+                                        AppColors.Green.copy(alpha = 0.1f)
+                                )
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(AppDimens.SpaceLG))
+                }
+            }
+
+            // 饼图
+            if (uiState.categoryStats.isNotEmpty()) {
+                item {
+                    AppCard(
+                        modifier = Modifier.padding(horizontal = AppDimens.SpaceLG)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(AppDimens.CardPadding),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "分类构成",
+                                style = AppTypography.Title3,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            PieChart(
+                                data = uiState.categoryStats.take(6).map { stat ->
+                                    PieChartData(
+                                        label = stat.categoryName,
+                                        value = stat.amount.toFloat(),
+                                        color = parseColor(stat.categoryColor)
+                                    )
+                                },
+                                size = 180.dp,
+                                strokeWidth = 28.dp
+                            )
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            // 图例
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                uiState.categoryStats.take(6).forEach { stat ->
+                                    LegendItem(
+                                        color = parseColor(stat.categoryColor),
+                                        label = stat.categoryName,
+                                        value = "${formatNumber(stat.percentage.toDouble() * 100)}%"
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(AppDimens.SpaceLG))
+                }
             }
 
             // 分类占比标题
