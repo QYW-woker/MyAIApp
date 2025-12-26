@@ -35,6 +35,7 @@ fun HomeScreen(
     onNavigateToCalendar: () -> Unit,
     onNavigateToSettings: () -> Unit,
     onNavigateToSearch: () -> Unit,
+    onNavigateToAnalysis: () -> Unit,
     onAddRecord: () -> Unit,
     viewModel: HomeViewModel = viewModel(factory = HomeViewModelFactory(LocalContext.current))
 ) {
@@ -85,7 +86,8 @@ fun HomeScreen(
                 onBudgetClick = onNavigateToBudget,
                 onSavingsClick = onNavigateToSavings,
                 onStatisticsClick = onNavigateToStatistics,
-                onCalendarClick = onNavigateToCalendar
+                onCalendarClick = onNavigateToCalendar,
+                onAnalysisClick = onNavigateToAnalysis
             )
             Spacer(modifier = Modifier.height(AppDimens.SpaceXL))
         }
@@ -222,7 +224,8 @@ private fun QuickActions(
     onBudgetClick: () -> Unit,
     onSavingsClick: () -> Unit,
     onStatisticsClick: () -> Unit,
-    onCalendarClick: () -> Unit
+    onCalendarClick: () -> Unit,
+    onAnalysisClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -249,10 +252,10 @@ private fun QuickActions(
             onClick = onStatisticsClick
         )
         QuickActionItem(
-            icon = Icons.Outlined.CalendarMonth,
-            label = "日历",
+            icon = Icons.Outlined.Analytics,
+            label = "分析",
             color = AppColors.Orange,
-            onClick = onCalendarClick
+            onClick = onAnalysisClick
         )
     }
 }

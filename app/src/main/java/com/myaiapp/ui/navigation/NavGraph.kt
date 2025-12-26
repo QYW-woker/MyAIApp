@@ -25,6 +25,7 @@ import com.myaiapp.ui.screens.settings.CloudSyncScreen
 import com.myaiapp.ui.screens.search.SearchScreen
 import com.myaiapp.ui.screens.export.ExportScreen
 import com.myaiapp.ui.screens.statistics.StatisticsScreen
+import com.myaiapp.ui.screens.analysis.AnalysisScreen
 
 /**
  * 导航路由
@@ -49,6 +50,7 @@ object Routes {
     const val REMINDER_SETTINGS = "reminder_settings"
     const val CURRENCY_SETTINGS = "currency_settings"
     const val CLOUD_SYNC = "cloud_sync"
+    const val ANALYSIS = "analysis"
 
     // 带参数的路由
     const val RECORD_EDIT = "record/{transactionId}"
@@ -82,6 +84,7 @@ fun AppNavGraph(
                 onNavigateToCalendar = { navController.navigate(Routes.CALENDAR) },
                 onNavigateToSettings = { navController.navigate(Routes.SETTINGS) },
                 onNavigateToSearch = { navController.navigate(Routes.SEARCH) },
+                onNavigateToAnalysis = { navController.navigate(Routes.ANALYSIS) },
                 onAddRecord = onShowRecordSheet
             )
         }
@@ -240,6 +243,13 @@ fun AppNavGraph(
         // 云同步
         composable(Routes.CLOUD_SYNC) {
             CloudSyncScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        // AI智能分析
+        composable(Routes.ANALYSIS) {
+            AnalysisScreen(
                 onBack = { navController.popBackStack() }
             )
         }
