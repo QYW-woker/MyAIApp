@@ -17,6 +17,7 @@ import com.myaiapp.ui.screens.settings.BackupScreen
 import com.myaiapp.ui.screens.settings.ImportScreen
 import com.myaiapp.ui.screens.settings.ReminderSettingsScreen
 import com.myaiapp.ui.screens.settings.CurrencySettingsScreen
+import com.myaiapp.ui.screens.settings.AISettingsScreen
 import com.myaiapp.ui.screens.search.SearchScreen
 import com.myaiapp.ui.screens.statistics.StatisticsScreen
 
@@ -37,6 +38,7 @@ object Routes {
     const val SEARCH = "search"
     const val REMINDER_SETTINGS = "reminder_settings"
     const val CURRENCY_SETTINGS = "currency_settings"
+    const val AI_SETTINGS = "ai_settings"
 
     // 带参数的路由
     const val RECORD_EDIT = "record/{transactionId}"
@@ -139,7 +141,8 @@ fun AppNavGraph(
                 onNavigateToBackup = { navController.navigate(Routes.BACKUP) },
                 onNavigateToImport = { navController.navigate(Routes.IMPORT) },
                 onNavigateToReminder = { navController.navigate(Routes.REMINDER_SETTINGS) },
-                onNavigateToCurrency = { navController.navigate(Routes.CURRENCY_SETTINGS) }
+                onNavigateToCurrency = { navController.navigate(Routes.CURRENCY_SETTINGS) },
+                onNavigateToAI = { navController.navigate(Routes.AI_SETTINGS) }
             )
         }
 
@@ -177,6 +180,13 @@ fun AppNavGraph(
         // 货币设置
         composable(Routes.CURRENCY_SETTINGS) {
             CurrencySettingsScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        // AI设置
+        composable(Routes.AI_SETTINGS) {
+            AISettingsScreen(
                 onBack = { navController.popBackStack() }
             )
         }

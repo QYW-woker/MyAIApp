@@ -26,6 +26,7 @@ fun SettingsScreen(
     onNavigateToImport: () -> Unit,
     onNavigateToReminder: () -> Unit,
     onNavigateToCurrency: () -> Unit,
+    onNavigateToAI: () -> Unit,
     viewModel: SettingsViewModel = viewModel(factory = SettingsViewModelFactory(LocalContext.current))
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -76,6 +77,18 @@ fun SettingsScreen(
                         title = "货币设置",
                         subtitle = "默认: ${uiState.defaultCurrency}",
                         onClick = onNavigateToCurrency
+                    )
+                }
+            }
+
+            // AI智能助手
+            item {
+                SettingsSection(title = "智能") {
+                    SettingsItem(
+                        icon = Icons.Outlined.AutoAwesome,
+                        title = "AI智能助手",
+                        subtitle = "智能分类、截图识别",
+                        onClick = onNavigateToAI
                     )
                 }
             }
