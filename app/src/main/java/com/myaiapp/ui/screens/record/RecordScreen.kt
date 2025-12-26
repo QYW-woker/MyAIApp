@@ -24,6 +24,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.myaiapp.data.local.model.Category
 import com.myaiapp.data.local.model.TransactionType
+import com.myaiapp.data.voice.VoiceParser
 import com.myaiapp.ui.components.*
 import com.myaiapp.ui.theme.*
 import com.myaiapp.util.formatFullDate
@@ -40,10 +41,34 @@ fun RecordScreen(
     )
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val voiceParser = remember { VoiceParser() }
 
     LaunchedEffect(uiState.saveSuccess) {
         if (uiState.saveSuccess) {
             onSaved()
+        }
+    }
+
+    // 处理语音输入结果
+    fun handleVoiceResult(text: String) {
+        val result = voiceParser.parse(text, uiState.categories)
+
+        // 设置交易类型
+        viewModel.setTransactionType(result.transactionType)
+
+        // 设置金额
+        result.amount?.let { amount ->
+            viewModel.setAmount(amount.toString())
+        }
+
+        // 设置分类
+        result.categoryId?.let { categoryId ->
+            viewModel.setCategory(categoryId)
+        }
+
+        // 设置备注
+        result.note?.let { note ->
+            viewModel.setNote(note)
         }
     }
 
@@ -53,6 +78,12 @@ fun RecordScreen(
                 title = if (transactionId == null) "记一笔" else "编辑记录",
                 onBackClick = onBack,
                 actions = {
+                    // 语音输入按钮（仅新建时显示）
+                    if (transactionId == null) {
+                        VoiceInputButton(
+                            onResult = { text -> handleVoiceResult(text) }
+                        )
+                    }
                     if (transactionId != null) {
                         IconButton(onClick = { viewModel.deleteTransaction() }) {
                             Icon(
