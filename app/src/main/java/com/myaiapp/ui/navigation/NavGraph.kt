@@ -21,6 +21,7 @@ import com.myaiapp.ui.screens.settings.CategoryManageScreen
 import com.myaiapp.ui.screens.settings.ImportScreen
 import com.myaiapp.ui.screens.settings.ReminderSettingsScreen
 import com.myaiapp.ui.screens.settings.CurrencySettingsScreen
+import com.myaiapp.ui.screens.settings.CloudSyncScreen
 import com.myaiapp.ui.screens.search.SearchScreen
 import com.myaiapp.ui.screens.export.ExportScreen
 import com.myaiapp.ui.screens.statistics.StatisticsScreen
@@ -47,6 +48,7 @@ object Routes {
     const val EXPORT = "export"
     const val REMINDER_SETTINGS = "reminder_settings"
     const val CURRENCY_SETTINGS = "currency_settings"
+    const val CLOUD_SYNC = "cloud_sync"
 
     // 带参数的路由
     const val RECORD_EDIT = "record/{transactionId}"
@@ -164,7 +166,8 @@ fun AppNavGraph(
                 onNavigateToImport = { navController.navigate(Routes.IMPORT) },
                 onNavigateToExport = { navController.navigate(Routes.EXPORT) },
                 onNavigateToReminder = { navController.navigate(Routes.REMINDER_SETTINGS) },
-                onNavigateToCurrency = { navController.navigate(Routes.CURRENCY_SETTINGS) }
+                onNavigateToCurrency = { navController.navigate(Routes.CURRENCY_SETTINGS) },
+                onNavigateToCloudSync = { navController.navigate(Routes.CLOUD_SYNC) }
             )
         }
 
@@ -230,6 +233,13 @@ fun AppNavGraph(
         // 货币设置
         composable(Routes.CURRENCY_SETTINGS) {
             CurrencySettingsScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        // 云同步
+        composable(Routes.CLOUD_SYNC) {
+            CloudSyncScreen(
                 onBack = { navController.popBackStack() }
             )
         }

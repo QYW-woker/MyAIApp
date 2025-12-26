@@ -30,6 +30,7 @@ fun SettingsScreen(
     onNavigateToExport: () -> Unit,
     onNavigateToReminder: () -> Unit,
     onNavigateToCurrency: () -> Unit,
+    onNavigateToCloudSync: () -> Unit,
     viewModel: SettingsViewModel = viewModel(factory = SettingsViewModelFactory(LocalContext.current))
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -168,6 +169,13 @@ fun SettingsScreen(
                         title = "导出数据",
                         subtitle = "导出CSV/Excel/PDF",
                         onClick = onNavigateToExport
+                    )
+                    Divider(modifier = Modifier.padding(start = 56.dp), color = AppColors.Gray100)
+                    SettingsItem(
+                        icon = Icons.Outlined.CloudSync,
+                        title = "云同步",
+                        subtitle = "数据备份与云端同步",
+                        onClick = onNavigateToCloudSync
                     )
                 }
             }
