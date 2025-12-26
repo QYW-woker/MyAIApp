@@ -23,8 +23,9 @@ fun SavingsScreen(
     viewModel: SavingsViewModel = viewModel(factory = SavingsViewModelFactory(LocalContext.current))
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    var showAddDialog by remember { mutableStateOf(false) }
-    var showDepositDialog by remember { mutableStateOf<String?>(null) }
+    var showAddSheet by remember { mutableStateOf(false) }
+    var showEditSheet by remember { mutableStateOf<SavingsPlanData?>(null) }
+    var showDepositSheet by remember { mutableStateOf<SavingsPlanData?>(null) }
 
     Scaffold(
         topBar = {
@@ -32,7 +33,7 @@ fun SavingsScreen(
                 title = "存钱计划",
                 onBackClick = onBack,
                 actions = {
-                    IconButton(onClick = { showAddDialog = true }) {
+                    IconButton(onClick = { showAddSheet = true }) {
                         Icon(Icons.Outlined.Add, contentDescription = "添加计划")
                     }
                 }
@@ -74,14 +75,14 @@ fun SavingsScreen(
                         title = "暂无存钱计划",
                         subtitle = "点击右上角添加您的第一个存钱计划",
                         actionText = "添加计划",
-                        onAction = { showAddDialog = true }
+                        onAction = { showAddSheet = true }
                     )
                 }
             } else {
                 items(uiState.plans) { plan ->
                     SavingsCard(
                         plan = plan,
-                        onClick = { showDepositDialog = plan.id },
+                        onClick = { showDepositSheet = plan },
                         modifier = Modifier.padding(horizontal = AppDimens.SpaceLG, vertical = 6.dp)
                     )
                 }
@@ -89,164 +90,52 @@ fun SavingsScreen(
         }
     }
 
-    // 添加计划对话框
-    if (showAddDialog) {
-        AddSavingsPlanDialog(
-            onDismiss = { showAddDialog = false },
-            onConfirm = { name, emoji, targetAmount ->
-                viewModel.addPlan(name, emoji, targetAmount)
-                showAddDialog = false
+    // 添加计划弹窗
+    if (showAddSheet) {
+        SavingsEditSheet(
+            onDismiss = { showAddSheet = false },
+            onSave = { plan ->
+                viewModel.savePlan(plan)
+                showAddSheet = false
             }
         )
     }
 
-    // 存入对话框
-    showDepositDialog?.let { planId ->
-        AddDepositDialog(
-            onDismiss = { showDepositDialog = null },
-            onConfirm = { amount, note ->
-                viewModel.addDeposit(planId, amount, note)
-                showDepositDialog = null
+    // 编辑计划弹窗
+    showEditSheet?.let { planData ->
+        SavingsEditSheet(
+            plan = planData.plan,
+            onDismiss = { showEditSheet = null },
+            onSave = { plan ->
+                viewModel.savePlan(plan)
+                showEditSheet = null
+            },
+            onDelete = { plan ->
+                viewModel.deletePlan(plan)
+                showEditSheet = null
+            }
+        )
+    }
+
+    // 存取弹窗
+    showDepositSheet?.let { planData ->
+        DepositSheet(
+            plan = planData.plan,
+            records = planData.records,
+            onDismiss = { showDepositSheet = null },
+            onDeposit = { amount, note ->
+                viewModel.deposit(planData.id, amount, note)
+                showDepositSheet = null
+            },
+            onWithdraw = { amount, note ->
+                viewModel.withdraw(planData.id, amount, note)
+                showDepositSheet = null
+            },
+            onEditPlan = {
+                showDepositSheet = null
+                showEditSheet = planData
             }
         )
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun AddSavingsPlanDialog(
-    onDismiss: () -> Unit,
-    onConfirm: (name: String, emoji: String, targetAmount: Double) -> Unit
-) {
-    var name by remember { mutableStateOf("") }
-    var emoji by remember { mutableStateOf("💰") }
-    var amount by remember { mutableStateOf("") }
-
-    val emojis = listOf("💰", "🏠", "🚗", "✈️", "💻", "📱", "👗", "💍", "🎓", "🎁")
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("新建存钱计划") },
-        text = {
-            Column {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("计划名称") },
-                    placeholder = { Text("例如：旅行基金") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Text("选择图标", style = AppTypography.Caption, color = AppColors.Gray500)
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    emojis.take(5).forEach { e ->
-                        TextButton(
-                            onClick = { emoji = e },
-                            colors = ButtonDefaults.textButtonColors(
-                                containerColor = if (e == emoji) AppColors.Blue.copy(alpha = 0.1f) else AppColors.Gray100
-                            )
-                        ) {
-                            Text(e, style = AppTypography.Title2)
-                        }
-                    }
-                }
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    emojis.drop(5).forEach { e ->
-                        TextButton(
-                            onClick = { emoji = e },
-                            colors = ButtonDefaults.textButtonColors(
-                                containerColor = if (e == emoji) AppColors.Blue.copy(alpha = 0.1f) else AppColors.Gray100
-                            )
-                        ) {
-                            Text(e, style = AppTypography.Title2)
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                OutlinedTextField(
-                    value = amount,
-                    onValueChange = { amount = it.filter { c -> c.isDigit() || c == '.' } },
-                    label = { Text("目标金额") },
-                    prefix = { Text("¥") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    val targetAmount = amount.toDoubleOrNull() ?: 0.0
-                    if (name.isNotBlank() && targetAmount > 0) {
-                        onConfirm(name, emoji, targetAmount)
-                    }
-                }
-            ) {
-                Text("确定")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("取消")
-            }
-        }
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun AddDepositDialog(
-    onDismiss: () -> Unit,
-    onConfirm: (amount: Double, note: String) -> Unit
-) {
-    var amount by remember { mutableStateOf("") }
-    var note by remember { mutableStateOf("") }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("存入") },
-        text = {
-            Column {
-                OutlinedTextField(
-                    value = amount,
-                    onValueChange = { amount = it.filter { c -> c.isDigit() || c == '.' } },
-                    label = { Text("存入金额") },
-                    prefix = { Text("¥") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                OutlinedTextField(
-                    value = note,
-                    onValueChange = { note = it },
-                    label = { Text("备注（选填）") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    val depositAmount = amount.toDoubleOrNull() ?: 0.0
-                    if (depositAmount > 0) {
-                        onConfirm(depositAmount, note)
-                    }
-                }
-            ) {
-                Text("确定")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("取消")
-            }
-        }
-    )
-}

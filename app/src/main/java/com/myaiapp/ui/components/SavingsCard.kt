@@ -17,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.myaiapp.data.local.model.SavingsPlan
+import com.myaiapp.ui.screens.savings.SavingsPlanData
 import com.myaiapp.ui.theme.*
 import com.myaiapp.util.formatNumber
 
@@ -25,15 +26,16 @@ import com.myaiapp.util.formatNumber
  */
 @Composable
 fun SavingsCard(
-    plan: SavingsPlan,
+    plan: SavingsPlanData,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val progress = if (plan.targetAmount > 0) {
-        (plan.currentAmount / plan.targetAmount).coerceIn(0.0, 1.0).toFloat()
+    val savingsPlan = plan.plan
+    val progress = if (savingsPlan.targetAmount > 0) {
+        (savingsPlan.currentAmount / savingsPlan.targetAmount).coerceIn(0.0, 1.0).toFloat()
     } else 0f
 
-    val isCompleted = plan.currentAmount >= plan.targetAmount
+    val isCompleted = savingsPlan.currentAmount >= savingsPlan.targetAmount
 
     val gradientColors = if (isCompleted) {
         listOf(Color(0xFF4CD964), Color(0xFF34C759))
@@ -64,12 +66,12 @@ fun SavingsCard(
                 ) {
                     Column {
                         Text(
-                            text = plan.emoji,
+                            text = savingsPlan.emoji,
                             fontSize = 32.sp
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = plan.name,
+                            text = savingsPlan.name,
                             color = Color.White,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold
@@ -119,14 +121,14 @@ fun SavingsCard(
                     verticalAlignment = Alignment.Bottom
                 ) {
                     Text(
-                        text = "¥${formatNumber(plan.currentAmount)}",
+                        text = "¥${formatNumber(savingsPlan.currentAmount)}",
                         color = Color.White,
                         fontSize = 28.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Column(horizontalAlignment = Alignment.End) {
                         Text(
-                            text = "目标 ¥${formatNumber(plan.targetAmount)}",
+                            text = "目标 ¥${formatNumber(savingsPlan.targetAmount)}",
                             color = Color.White.copy(alpha = 0.9f),
                             fontSize = 12.sp
                         )
