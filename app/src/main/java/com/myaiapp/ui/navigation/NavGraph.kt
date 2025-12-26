@@ -14,6 +14,11 @@ import com.myaiapp.ui.screens.record.RecordScreen
 import com.myaiapp.ui.screens.records.RecordsScreen
 import com.myaiapp.ui.screens.savings.SavingsScreen
 import com.myaiapp.ui.screens.settings.SettingsScreen
+import com.myaiapp.ui.screens.settings.AISettingsScreen
+import com.myaiapp.ui.screens.settings.BackupScreen
+import com.myaiapp.ui.screens.settings.BookManageScreen
+import com.myaiapp.ui.screens.settings.CategoryManageScreen
+import com.myaiapp.ui.screens.settings.ImportScreen
 import com.myaiapp.ui.screens.statistics.StatisticsScreen
 
 /**
@@ -29,6 +34,11 @@ object Routes {
     const val SAVINGS = "savings"
     const val CALENDAR = "calendar"
     const val SETTINGS = "settings"
+    const val BOOK_MANAGE = "book_manage"
+    const val CATEGORY_MANAGE = "category_manage"
+    const val AI_SETTINGS = "ai_settings"
+    const val BACKUP = "backup"
+    const val IMPORT = "import"
 
     // 带参数的路由
     const val RECORD_EDIT = "record/{transactionId}"
@@ -137,6 +147,46 @@ fun AppNavGraph(
         // 设置
         composable(Routes.SETTINGS) {
             SettingsScreen(
+                onBack = { navController.popBackStack() },
+                onNavigateToBookManage = { navController.navigate(Routes.BOOK_MANAGE) },
+                onNavigateToCategoryManage = { navController.navigate(Routes.CATEGORY_MANAGE) },
+                onNavigateToAISettings = { navController.navigate(Routes.AI_SETTINGS) },
+                onNavigateToBackup = { navController.navigate(Routes.BACKUP) },
+                onNavigateToImport = { navController.navigate(Routes.IMPORT) }
+            )
+        }
+
+        // 账本管理
+        composable(Routes.BOOK_MANAGE) {
+            BookManageScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        // 分类管理
+        composable(Routes.CATEGORY_MANAGE) {
+            CategoryManageScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        // AI设置
+        composable(Routes.AI_SETTINGS) {
+            AISettingsScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        // 备份与恢复
+        composable(Routes.BACKUP) {
+            BackupScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        // 导入账单
+        composable(Routes.IMPORT) {
+            ImportScreen(
                 onBack = { navController.popBackStack() }
             )
         }

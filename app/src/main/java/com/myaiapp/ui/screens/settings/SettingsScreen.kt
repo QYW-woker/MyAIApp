@@ -22,6 +22,11 @@ import com.myaiapp.ui.theme.*
 @Composable
 fun SettingsScreen(
     onBack: () -> Unit,
+    onNavigateToBookManage: () -> Unit,
+    onNavigateToCategoryManage: () -> Unit,
+    onNavigateToAISettings: () -> Unit,
+    onNavigateToBackup: () -> Unit,
+    onNavigateToImport: () -> Unit,
     viewModel: SettingsViewModel = viewModel(factory = SettingsViewModelFactory(LocalContext.current))
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -48,14 +53,14 @@ fun SettingsScreen(
                         icon = Icons.Outlined.Book,
                         title = "账本管理",
                         subtitle = "当前: ${uiState.currentBookName}",
-                        onClick = { /* TODO: Navigate to book management */ }
+                        onClick = onNavigateToBookManage
                     )
                     Divider(modifier = Modifier.padding(start = 56.dp), color = AppColors.Gray100)
                     SettingsItem(
                         icon = Icons.Outlined.Category,
                         title = "分类管理",
                         subtitle = "自定义收支分类",
-                        onClick = { /* TODO: Navigate to category management */ }
+                        onClick = onNavigateToCategoryManage
                     )
                 }
             }
@@ -67,7 +72,7 @@ fun SettingsScreen(
                         icon = Icons.Outlined.SmartToy,
                         title = "AI设置",
                         subtitle = if (uiState.aiEnabled) "已配置" else "未配置",
-                        onClick = { /* TODO: Navigate to AI settings */ }
+                        onClick = onNavigateToAISettings
                     )
                     Divider(modifier = Modifier.padding(start = 56.dp), color = AppColors.Gray100)
                     SettingsSwitchItem(
@@ -151,23 +156,16 @@ fun SettingsScreen(
                 SettingsSection(title = "数据") {
                     SettingsItem(
                         icon = Icons.Outlined.Backup,
-                        title = "备份数据",
-                        subtitle = "导出所有数据",
-                        onClick = { viewModel.backupData() }
-                    )
-                    Divider(modifier = Modifier.padding(start = 56.dp), color = AppColors.Gray100)
-                    SettingsItem(
-                        icon = Icons.Outlined.Restore,
-                        title = "恢复数据",
-                        subtitle = "从备份恢复",
-                        onClick = { /* TODO: Show file picker */ }
+                        title = "备份与恢复",
+                        subtitle = "导出或恢复数据",
+                        onClick = onNavigateToBackup
                     )
                     Divider(modifier = Modifier.padding(start = 56.dp), color = AppColors.Gray100)
                     SettingsItem(
                         icon = Icons.Outlined.FileDownload,
                         title = "导入账单",
                         subtitle = "支持微信/支付宝CSV",
-                        onClick = { /* TODO: Show import options */ }
+                        onClick = onNavigateToImport
                     )
                 }
             }
