@@ -27,6 +27,7 @@ import com.myaiapp.data.local.model.TransactionType
 import com.myaiapp.ui.components.*
 import com.myaiapp.ui.theme.*
 import com.myaiapp.util.formatFullDate
+import com.myaiapp.voice.VoiceInputParser
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,10 +41,34 @@ fun RecordScreen(
     )
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val voiceParser = remember { VoiceInputParser() }
+    var voiceError by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(uiState.saveSuccess) {
         if (uiState.saveSuccess) {
             onSaved()
+        }
+    }
+
+    // 处理语音识别结果
+    fun handleVoiceResult(result: VoiceInputParser.ParseResult) {
+        // 设置金额
+        result.amount?.let { amount ->
+            viewModel.setAmount(String.format("%.2f", amount).trimEnd('0').trimEnd('.'))
+        }
+
+        // 设置类型
+        viewModel.setTransactionType(result.type)
+
+        // 设置备注
+        if (result.note.isNotBlank()) {
+            viewModel.setNote(result.note)
+        }
+
+        // 匹配分类
+        if (result.categoryKeyword.isNotBlank()) {
+            val matchedCategory = voiceParser.matchCategory(result.categoryKeyword, uiState.categories)
+            matchedCategory?.let { viewModel.setCategory(it.id) }
         }
     }
 
@@ -53,6 +78,12 @@ fun RecordScreen(
                 title = if (transactionId == null) "记一笔" else "编辑记录",
                 onBackClick = onBack,
                 actions = {
+                    // 语音记账按钮
+                    VoiceRecordButton(
+                        onResult = { result -> handleVoiceResult(result) },
+                        onError = { error -> voiceError = error }
+                    )
+
                     if (transactionId != null) {
                         IconButton(onClick = { viewModel.deleteTransaction() }) {
                             Icon(
