@@ -63,8 +63,22 @@ class SearchViewModel(
             try {
                 val bookId = storageManager.getCurrentBookId()
                 val allTransactions = storageManager.getTransactions(bookId)
+                val categories = storageManager.getCategories()
+                val accounts = storageManager.getAssetAccounts()
 
-                val filteredResults = allTransactions.filter { transaction ->
+                // 填充分类和账户信息
+                val enrichedTransactions = allTransactions.map { transaction ->
+                    val category = categories.find { it.id == transaction.categoryId }
+                    val account = accounts.find { it.id == transaction.accountId }
+                    transaction.copy(
+                        categoryName = category?.name,
+                        categoryIcon = category?.icon,
+                        categoryColor = category?.color,
+                        accountName = account?.name
+                    )
+                }
+
+                val filteredResults = enrichedTransactions.filter { transaction ->
                     val matchesQuery = transaction.note?.contains(query, ignoreCase = true) == true ||
                             transaction.categoryName?.contains(query, ignoreCase = true) == true ||
                             transaction.amount.toString().contains(query)

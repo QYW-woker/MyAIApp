@@ -20,6 +20,7 @@ import com.myaiapp.ui.screens.settings.BookManageScreen
 import com.myaiapp.ui.screens.settings.CategoryManageScreen
 import com.myaiapp.ui.screens.settings.ImportScreen
 import com.myaiapp.ui.screens.search.SearchScreen
+import com.myaiapp.ui.screens.export.ExportScreen
 import com.myaiapp.ui.screens.statistics.StatisticsScreen
 
 /**
@@ -41,6 +42,7 @@ object Routes {
     const val BACKUP = "backup"
     const val IMPORT = "import"
     const val SEARCH = "search"
+    const val EXPORT = "export"
 
     // 带参数的路由
     const val RECORD_EDIT = "record/{transactionId}"
@@ -155,7 +157,8 @@ fun AppNavGraph(
                 onNavigateToCategoryManage = { navController.navigate(Routes.CATEGORY_MANAGE) },
                 onNavigateToAISettings = { navController.navigate(Routes.AI_SETTINGS) },
                 onNavigateToBackup = { navController.navigate(Routes.BACKUP) },
-                onNavigateToImport = { navController.navigate(Routes.IMPORT) }
+                onNavigateToImport = { navController.navigate(Routes.IMPORT) },
+                onNavigateToExport = { navController.navigate(Routes.EXPORT) }
             )
         }
 
@@ -201,6 +204,13 @@ fun AppNavGraph(
                 onTransactionClick = { transactionId ->
                     navController.navigate(Routes.recordEdit(transactionId))
                 }
+            )
+        }
+
+        // 数据导出
+        composable(Routes.EXPORT) {
+            ExportScreen(
+                onBack = { navController.popBackStack() }
             )
         }
     }

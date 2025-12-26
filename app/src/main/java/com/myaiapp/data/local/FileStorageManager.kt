@@ -57,6 +57,9 @@ class FileStorageManager(private val context: Context) {
     // ===== 提醒 =====
     private val remindersFile get() = File(remindersDir, "reminders.json")
 
+    // ===== 搜索历史 =====
+    private val searchHistoryFile get() = File(configDir, "search_history.json")
+
     // ===== 记录文件 =====
     private fun getTransactionsFile(bookId: String) = File(getRecordsDir(bookId), "transactions.json")
     private fun getTemplatesFile(bookId: String) = File(getRecordsDir(bookId), "templates.json")
@@ -440,6 +443,39 @@ class FileStorageManager(private val context: Context) {
         }
     }
 
+    suspend fun saveSavingsPlan(plan: SavingsPlan) {
+        updateSavingsPlan(plan)
+    }
+
+    // ==================== 存钱记录 ====================
+
+    private fun getSavingsRecordsFile(planId: String) = File(savingsDir, "records_$planId.json")
+
+    @kotlinx.serialization.Serializable
+    private data class SavingsRecordsData(val records: List<SavingsRecord> = emptyList())
+
+    suspend fun getSavingsRecords(planId: String): List<SavingsRecord> {
+        return readFile(getSavingsRecordsFile(planId), SavingsRecordsData()).records
+    }
+
+    suspend fun addSavingsRecord(planId: String, record: SavingsRecord) {
+        // 保存记录
+        val currentRecords = getSavingsRecords(planId).toMutableList()
+        currentRecords.add(record)
+        writeFile(getSavingsRecordsFile(planId), SavingsRecordsData(currentRecords))
+
+        // 更新计划金额
+        val plans = getSavingsPlans().toMutableList()
+        val index = plans.indexOfFirst { it.id == planId }
+        if (index >= 0) {
+            val plan = plans[index]
+            plans[index] = plan.copy(
+                currentAmount = plan.currentAmount + record.amount
+            )
+            saveSavingsPlans(plans)
+        }
+    }
+
     // ==================== 提醒 ====================
 
     suspend fun getReminders(): List<Reminder> {
@@ -476,6 +512,19 @@ class FileStorageManager(private val context: Context) {
 
     suspend fun saveCurrencies(currencies: List<Currency>) {
         writeFile(currenciesFile, CurrenciesData(currencies))
+    }
+
+    // ==================== 搜索历史 ====================
+
+    @kotlinx.serialization.Serializable
+    private data class SearchHistoryData(val history: List<String> = emptyList())
+
+    suspend fun getSearchHistory(): List<String> {
+        return readFile(searchHistoryFile, SearchHistoryData()).history
+    }
+
+    suspend fun saveSearchHistory(history: List<String>) {
+        writeFile(searchHistoryFile, SearchHistoryData(history))
     }
 
     // ==================== 备份与恢复 ====================

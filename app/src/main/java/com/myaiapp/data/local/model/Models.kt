@@ -108,14 +108,19 @@ data class Transaction(
     val toAccountId: String? = null,      // 转账目标账户
     val bookId: String,
     val date: Long,
-    val note: String = "",
+    val note: String? = null,
     val tags: List<String> = emptyList(),
     val images: List<String> = emptyList(),
     val currency: String = "CNY",
     val exchangeRate: Double = 1.0,
     val isRefund: Boolean = false,
     val refundFromId: String? = null,     // 退款来源
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+    // 非持久化字段，用于UI展示
+    val categoryName: String? = null,
+    val categoryIcon: String? = null,
+    val categoryColor: String? = null,
+    val accountName: String? = null
 )
 
 // ===== 分类 =====
@@ -163,13 +168,23 @@ data class SavingsPlan(
     val createdAt: Long = System.currentTimeMillis()
 )
 
-// ===== 存钱记录 =====
+// ===== 存钱存入记录 =====
 @Serializable
 data class SavingsDeposit(
     val id: String = UUID.randomUUID().toString(),
     val amount: Double,
     val date: Long,
     val note: String = ""
+)
+
+// ===== 存钱操作记录（存入/取出）=====
+@Serializable
+data class SavingsRecord(
+    val id: String = UUID.randomUUID().toString(),
+    val planId: String,
+    val amount: Double,  // 正数为存入，负数为取出
+    val date: Long,
+    val note: String? = null
 )
 
 // ===== 记账模板 =====

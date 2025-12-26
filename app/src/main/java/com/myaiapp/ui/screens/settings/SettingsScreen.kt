@@ -27,6 +27,7 @@ fun SettingsScreen(
     onNavigateToAISettings: () -> Unit,
     onNavigateToBackup: () -> Unit,
     onNavigateToImport: () -> Unit,
+    onNavigateToExport: () -> Unit,
     viewModel: SettingsViewModel = viewModel(factory = SettingsViewModelFactory(LocalContext.current))
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -166,6 +167,13 @@ fun SettingsScreen(
                         title = "导入账单",
                         subtitle = "支持微信/支付宝CSV",
                         onClick = onNavigateToImport
+                    )
+                    Divider(modifier = Modifier.padding(start = 56.dp), color = AppColors.Gray100)
+                    SettingsItem(
+                        icon = Icons.Outlined.FileUpload,
+                        title = "导出数据",
+                        subtitle = "导出CSV/Excel/PDF",
+                        onClick = onNavigateToExport
                     )
                 }
             }

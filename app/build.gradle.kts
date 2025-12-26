@@ -112,6 +112,9 @@ dependencies {
     // CSV parsing
     implementation("com.opencsv:opencsv:5.8")
 
+    // PDF generation
+    implementation("com.itextpdf:itext7-core:7.2.5")
+
     // Coil for image loading
     implementation("io.coil-kt:coil-compose:2.5.0")
 
