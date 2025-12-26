@@ -37,10 +37,13 @@ class SavingsViewModel(private val context: Context) : ViewModel() {
             _uiState.update { it.copy(isLoading = true) }
             try {
                 val plans = storageManager.getSavingsPlans()
-                val records = storageManager.getSavingsRecords()
 
-                // 按计划ID分组记录
-                val recordsByPlan = records.groupBy { it.planId }
+                // 加载每个计划的记录
+                val recordsByPlan = mutableMapOf<String, List<SavingsRecord>>()
+                plans.forEach { plan ->
+                    val records = storageManager.getSavingsRecords(plan.id)
+                    recordsByPlan[plan.id] = records
+                }
 
                 _uiState.update {
                     it.copy(
@@ -102,19 +105,8 @@ class SavingsViewModel(private val context: Context) : ViewModel() {
                     note = note.ifEmpty { null }
                 )
 
-                // 更新计划当前金额
-                val plans = _uiState.value.plans.toMutableList()
-                val planIndex = plans.indexOfFirst { it.id == planId }
-                if (planIndex >= 0) {
-                    val plan = plans[planIndex]
-                    plans[planIndex] = plan.copy(currentAmount = plan.currentAmount + amount)
-                    storageManager.saveSavingsPlans(plans)
-                }
-
-                // 保存记录
-                val currentRecords = storageManager.getSavingsRecords().toMutableList()
-                currentRecords.add(record)
-                storageManager.saveSavingsRecords(currentRecords)
+                // 使用 addSavingsRecord 方法（会同时更新计划金额）
+                storageManager.addSavingsRecord(planId, record)
 
                 loadData()
             } catch (e: Exception) {
@@ -135,20 +127,8 @@ class SavingsViewModel(private val context: Context) : ViewModel() {
                     note = note.ifEmpty { null }
                 )
 
-                // 更新计划当前金额
-                val plans = _uiState.value.plans.toMutableList()
-                val planIndex = plans.indexOfFirst { it.id == planId }
-                if (planIndex >= 0) {
-                    val plan = plans[planIndex]
-                    val newAmount = (plan.currentAmount - amount).coerceAtLeast(0.0)
-                    plans[planIndex] = plan.copy(currentAmount = newAmount)
-                    storageManager.saveSavingsPlans(plans)
-                }
-
-                // 保存记录
-                val currentRecords = storageManager.getSavingsRecords().toMutableList()
-                currentRecords.add(record)
-                storageManager.saveSavingsRecords(currentRecords)
+                // 使用 addSavingsRecord 方法（会同时更新计划金额）
+                storageManager.addSavingsRecord(planId, record)
 
                 loadData()
             } catch (e: Exception) {

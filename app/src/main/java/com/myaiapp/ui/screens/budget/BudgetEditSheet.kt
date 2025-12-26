@@ -24,7 +24,6 @@ import com.myaiapp.data.local.model.BudgetPeriod
 import com.myaiapp.data.local.model.BudgetType
 import com.myaiapp.data.local.model.Category
 import com.myaiapp.ui.components.CategoryIcon
-import com.myaiapp.ui.components.parseColor
 import com.myaiapp.ui.theme.*
 import java.util.UUID
 
