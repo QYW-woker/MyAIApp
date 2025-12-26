@@ -38,48 +38,52 @@ fun BottomNavBar(
         shadowElevation = 8.dp,
         color = Color.White.copy(alpha = 0.98f)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(AppDimens.BottomNavHeight)
-                .padding(top = 8.dp),
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.Top
-        ) {
-            // 首页
-            NavItem(
-                icon = Icons.Outlined.Home,
-                label = "首页",
-                selected = currentRoute == "home",
-                onClick = { onNavigate("home") }
-            )
+        Column {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(AppDimens.BottomNavHeight)
+                    .padding(top = 8.dp),
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.Top
+            ) {
+                // 首页
+                NavItem(
+                    icon = Icons.Outlined.Home,
+                    label = "首页",
+                    selected = currentRoute == "home",
+                    onClick = { onNavigate("home") }
+                )
 
-            // 明细
-            NavItem(
-                icon = Icons.Outlined.Receipt,
-                label = "明细",
-                selected = currentRoute == "records",
-                onClick = { onNavigate("records") }
-            )
+                // 明细
+                NavItem(
+                    icon = Icons.Outlined.Receipt,
+                    label = "明细",
+                    selected = currentRoute == "records",
+                    onClick = { onNavigate("records") }
+                )
 
-            // 中间记账按钮
-            CenterAddButton(onClick = onAddClick)
+                // 中间记账按钮
+                CenterAddButton(onClick = onAddClick)
 
-            // 统计
-            NavItem(
-                icon = Icons.Outlined.PieChart,
-                label = "统计",
-                selected = currentRoute == "statistics",
-                onClick = { onNavigate("statistics") }
-            )
+                // 统计
+                NavItem(
+                    icon = Icons.Outlined.PieChart,
+                    label = "统计",
+                    selected = currentRoute == "statistics",
+                    onClick = { onNavigate("statistics") }
+                )
 
-            // 资产
-            NavItem(
-                icon = Icons.Outlined.CreditCard,
-                label = "资产",
-                selected = currentRoute == "assets",
-                onClick = { onNavigate("assets") }
-            )
+                // 资产
+                NavItem(
+                    icon = Icons.Outlined.CreditCard,
+                    label = "资产",
+                    selected = currentRoute == "assets",
+                    onClick = { onNavigate("assets") }
+                )
+            }
+            // 底部安全区域
+            Spacer(modifier = Modifier.navigationBarsPadding())
         }
     }
 }

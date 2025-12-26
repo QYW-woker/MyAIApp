@@ -115,7 +115,10 @@ fun HomeScreen(
                     contentPadding = PaddingValues(horizontal = AppDimens.SpaceLG),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(uiState.savingsPlans.take(3)) { plan ->
+                    items(
+                        items = uiState.savingsPlans.take(3),
+                        key = { it.id }
+                    ) { plan ->
                         SavingsCardCompact(
                             plan = plan,
                             onClick = onNavigateToSavings,
@@ -164,7 +167,10 @@ fun HomeScreen(
                     )
                 }
 
-                items(transactions) { transaction ->
+                items(
+                    items = transactions,
+                    key = { it.id }
+                ) { transaction ->
                     val category = uiState.categories.find { it.id == transaction.categoryId }
                     if (category != null) {
                         Surface(
