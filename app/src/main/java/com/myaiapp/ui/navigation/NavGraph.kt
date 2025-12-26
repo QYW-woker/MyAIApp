@@ -6,6 +6,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.myaiapp.ui.screens.assets.AssetsScreen
 import com.myaiapp.ui.screens.budget.BudgetScreen
 import com.myaiapp.ui.screens.calendar.CalendarScreen
 import com.myaiapp.ui.screens.home.HomeScreen
@@ -29,6 +30,7 @@ object Routes {
     const val HOME = "home"
     const val RECORDS = "records"
     const val STATISTICS = "statistics"
+    const val ASSETS = "assets"
     const val RECORD = "record"
     const val BUDGET = "budget"
     const val SAVINGS = "savings"
@@ -88,6 +90,13 @@ fun AppNavGraph(
         // 统计
         composable(Routes.STATISTICS) {
             StatisticsScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        // 资产
+        composable(Routes.ASSETS) {
+            AssetsScreen(
                 onBack = { navController.popBackStack() }
             )
         }

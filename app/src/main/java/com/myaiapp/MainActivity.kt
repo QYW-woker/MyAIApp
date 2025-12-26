@@ -50,7 +50,8 @@ fun MainScreen() {
     val showBottomBar = currentRoute in listOf(
         Routes.HOME,
         Routes.RECORDS,
-        Routes.STATISTICS
+        Routes.STATISTICS,
+        Routes.ASSETS
     )
 
     Scaffold(
