@@ -28,6 +28,7 @@ fun SettingsScreen(
     onNavigateToBackup: () -> Unit,
     onNavigateToImport: () -> Unit,
     onNavigateToExport: () -> Unit,
+    onNavigateToReminder: () -> Unit,
     viewModel: SettingsViewModel = viewModel(factory = SettingsViewModelFactory(LocalContext.current))
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -112,19 +113,11 @@ fun SettingsScreen(
             // 通知设置
             item {
                 SettingsSection(title = "通知") {
-                    SettingsSwitchItem(
-                        icon = Icons.Outlined.Notifications,
-                        title = "预算提醒",
-                        subtitle = "预算超支时提醒",
-                        checked = uiState.budgetAlertEnabled,
-                        onCheckedChange = { viewModel.setBudgetAlert(it) }
-                    )
-                    Divider(modifier = Modifier.padding(start = 56.dp), color = AppColors.Gray100)
                     SettingsItem(
-                        icon = Icons.Outlined.Schedule,
-                        title = "记账提醒",
-                        subtitle = "设置每日提醒时间",
-                        onClick = { /* TODO: Show time picker */ }
+                        icon = Icons.Outlined.Notifications,
+                        title = "提醒设置",
+                        subtitle = "记账提醒、预算提醒等",
+                        onClick = onNavigateToReminder
                     )
                 }
             }

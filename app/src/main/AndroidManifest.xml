@@ -48,6 +48,17 @@
                 android:resource="@xml/quick_record_widget_info" />
         </receiver>
 
+        <!-- Reminder Broadcast Receiver -->
+        <receiver
+            android:name=".notification.ReminderReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.myaiapp.DAILY_REMINDER" />
+                <action android:name="com.myaiapp.SINGLE_REMINDER" />
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
         <!-- FileProvider for sharing files -->
         <provider
             android:name="androidx.core.content.FileProvider"

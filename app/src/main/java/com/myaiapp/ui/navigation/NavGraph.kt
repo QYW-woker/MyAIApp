@@ -19,6 +19,7 @@ import com.myaiapp.ui.screens.settings.BackupScreen
 import com.myaiapp.ui.screens.settings.BookManageScreen
 import com.myaiapp.ui.screens.settings.CategoryManageScreen
 import com.myaiapp.ui.screens.settings.ImportScreen
+import com.myaiapp.ui.screens.settings.ReminderSettingsScreen
 import com.myaiapp.ui.screens.search.SearchScreen
 import com.myaiapp.ui.screens.export.ExportScreen
 import com.myaiapp.ui.screens.statistics.StatisticsScreen
@@ -43,6 +44,7 @@ object Routes {
     const val IMPORT = "import"
     const val SEARCH = "search"
     const val EXPORT = "export"
+    const val REMINDER_SETTINGS = "reminder_settings"
 
     // 带参数的路由
     const val RECORD_EDIT = "record/{transactionId}"
@@ -158,7 +160,8 @@ fun AppNavGraph(
                 onNavigateToAISettings = { navController.navigate(Routes.AI_SETTINGS) },
                 onNavigateToBackup = { navController.navigate(Routes.BACKUP) },
                 onNavigateToImport = { navController.navigate(Routes.IMPORT) },
-                onNavigateToExport = { navController.navigate(Routes.EXPORT) }
+                onNavigateToExport = { navController.navigate(Routes.EXPORT) },
+                onNavigateToReminder = { navController.navigate(Routes.REMINDER_SETTINGS) }
             )
         }
 
@@ -210,6 +213,13 @@ fun AppNavGraph(
         // 数据导出
         composable(Routes.EXPORT) {
             ExportScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        // 提醒设置
+        composable(Routes.REMINDER_SETTINGS) {
+            ReminderSettingsScreen(
                 onBack = { navController.popBackStack() }
             )
         }
