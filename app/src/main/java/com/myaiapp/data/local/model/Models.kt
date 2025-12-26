@@ -254,6 +254,17 @@ data class AIConfig(
     val enableOCR: Boolean = true
 )
 
+// ===== 同步配置 =====
+@Serializable
+data class SyncConfig(
+    val enabled: Boolean = false,
+    val serverUrl: String = "",
+    val username: String = "",
+    val password: String = "",
+    val lastSyncTime: Long = 0,
+    val autoSync: Boolean = false
+)
+
 // ===== 货币 =====
 @Serializable
 data class Currency(

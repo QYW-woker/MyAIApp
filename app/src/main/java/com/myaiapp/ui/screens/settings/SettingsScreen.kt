@@ -27,6 +27,7 @@ fun SettingsScreen(
     onNavigateToReminder: () -> Unit,
     onNavigateToCurrency: () -> Unit,
     onNavigateToAI: () -> Unit,
+    onNavigateToSync: () -> Unit,
     viewModel: SettingsViewModel = viewModel(factory = SettingsViewModelFactory(LocalContext.current))
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -96,6 +97,13 @@ fun SettingsScreen(
             // 数据管理
             item {
                 SettingsSection(title = "数据") {
+                    SettingsItem(
+                        icon = Icons.Outlined.Cloud,
+                        title = "云同步",
+                        subtitle = "WebDAV 多设备同步",
+                        onClick = onNavigateToSync
+                    )
+                    Divider(modifier = Modifier.padding(start = 56.dp), color = AppColors.Gray100)
                     SettingsItem(
                         icon = Icons.Outlined.Backup,
                         title = "备份与恢复",

@@ -40,6 +40,7 @@ class FileStorageManager(private val context: Context) {
     // ===== 设置 =====
     private val settingsFile get() = File(configDir, "settings.json")
     private val aiConfigFile get() = File(configDir, "ai_config.json")
+    private val syncConfigFile get() = File(configDir, "sync_config.json")
     private val categoriesFile get() = File(configDir, "categories.json")
     private val currenciesFile get() = File(configDir, "currencies.json")
 
@@ -105,6 +106,12 @@ class FileStorageManager(private val context: Context) {
     suspend fun getAIConfig(): AIConfig = readFile(aiConfigFile, AIConfig())
 
     suspend fun saveAIConfig(config: AIConfig) = writeFile(aiConfigFile, config)
+
+    // ==================== 同步配置 ====================
+
+    suspend fun getSyncConfig(): SyncConfig = readFile(syncConfigFile, SyncConfig())
+
+    suspend fun saveSyncConfig(config: SyncConfig) = writeFile(syncConfigFile, config)
 
     // ==================== 分类 ====================
 

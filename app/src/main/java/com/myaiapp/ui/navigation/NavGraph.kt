@@ -18,6 +18,7 @@ import com.myaiapp.ui.screens.settings.ImportScreen
 import com.myaiapp.ui.screens.settings.ReminderSettingsScreen
 import com.myaiapp.ui.screens.settings.CurrencySettingsScreen
 import com.myaiapp.ui.screens.settings.AISettingsScreen
+import com.myaiapp.ui.screens.settings.SyncSettingsScreen
 import com.myaiapp.ui.screens.search.SearchScreen
 import com.myaiapp.ui.screens.statistics.StatisticsScreen
 
@@ -39,6 +40,7 @@ object Routes {
     const val REMINDER_SETTINGS = "reminder_settings"
     const val CURRENCY_SETTINGS = "currency_settings"
     const val AI_SETTINGS = "ai_settings"
+    const val SYNC_SETTINGS = "sync_settings"
 
     // 带参数的路由
     const val RECORD_EDIT = "record/{transactionId}"
@@ -142,7 +144,8 @@ fun AppNavGraph(
                 onNavigateToImport = { navController.navigate(Routes.IMPORT) },
                 onNavigateToReminder = { navController.navigate(Routes.REMINDER_SETTINGS) },
                 onNavigateToCurrency = { navController.navigate(Routes.CURRENCY_SETTINGS) },
-                onNavigateToAI = { navController.navigate(Routes.AI_SETTINGS) }
+                onNavigateToAI = { navController.navigate(Routes.AI_SETTINGS) },
+                onNavigateToSync = { navController.navigate(Routes.SYNC_SETTINGS) }
             )
         }
 
@@ -187,6 +190,13 @@ fun AppNavGraph(
         // AI设置
         composable(Routes.AI_SETTINGS) {
             AISettingsScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        // 云同步设置
+        composable(Routes.SYNC_SETTINGS) {
+            SyncSettingsScreen(
                 onBack = { navController.popBackStack() }
             )
         }
