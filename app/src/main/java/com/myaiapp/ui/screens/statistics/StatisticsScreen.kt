@@ -116,6 +116,58 @@ fun StatisticsScreen(
                 Spacer(modifier = Modifier.height(AppDimens.SpaceLG))
             }
 
+            // 饼图
+            if (uiState.categoryStats.isNotEmpty()) {
+                item {
+                    AppCard(
+                        modifier = Modifier.padding(horizontal = AppDimens.SpaceLG)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(AppDimens.CardPadding),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "分类构成",
+                                style = AppTypography.Title3,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            PieChart(
+                                data = uiState.categoryStats.take(6).map { stat ->
+                                    PieChartData(
+                                        label = stat.categoryName,
+                                        value = stat.amount.toFloat(),
+                                        color = parseColor(stat.categoryColor)
+                                    )
+                                },
+                                size = 180.dp,
+                                strokeWidth = 28.dp
+                            )
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            // 图例
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                uiState.categoryStats.take(6).forEach { stat ->
+                                    LegendItem(
+                                        color = parseColor(stat.categoryColor),
+                                        label = stat.categoryName,
+                                        value = "${formatNumber(stat.percentage.toDouble() * 100)}%"
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(AppDimens.SpaceLG))
+                }
+            }
+
             // 分类占比标题
             item {
                 Text(
