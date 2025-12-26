@@ -53,10 +53,10 @@ fun TransactionItem(
                     style = AppTypography.Body.copy(fontWeight = FontWeight.Medium),
                     color = AppColors.Gray900
                 )
-                if (transaction.note.isNotEmpty()) {
+                if (!transaction.note.isNullOrEmpty()) {
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = transaction.note,
+                        text = transaction.note ?: "",
                         style = AppTypography.Caption,
                         color = AppColors.Gray500,
                         maxLines = 1,

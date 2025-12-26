@@ -5,71 +5,97 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.myaiapp.data.local.FileStorageManager
-import com.myaiapp.data.local.model.Category
-import com.myaiapp.data.local.model.Transaction
-import com.myaiapp.data.local.model.TransactionType
-import com.myaiapp.util.*
+import com.myaiapp.data.local.model.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.*
+import java.util.Calendar
 
-data class CategoryStat(
+data class CategoryStatistics(
     val categoryId: String,
     val categoryName: String,
     val categoryIcon: String,
     val categoryColor: String,
     val amount: Double,
-    val percentage: Float,
+    val percentage: Double,
     val count: Int
-)
-
-data class DailyData(
-    val label: String,
-    val amount: Float
 )
 
 data class StatisticsUiState(
     val isLoading: Boolean = true,
-    val periodIndex: Int = 1,  // 0: 周, 1: 月, 2: 年
-    val typeIndex: Int = 0,    // 0: 支出, 1: 收入
-    val periodLabel: String = "",
-    val totalAmount: Double = 0.0,
-    val previousPeriodAmount: Double = 0.0,
-    val transactionCount: Int = 0,
-    val dailyAverage: Double = 0.0,
-    val categoryStats: List<CategoryStat> = emptyList(),
-    val dailyData: List<DailyData> = emptyList(),
-    val monthlyData: List<DailyData> = emptyList()
+    val periodType: String = "month", // week, month, year
+    val totalIncome: Double = 0.0,
+    val totalExpense: Double = 0.0,
+    val balance: Double = 0.0,
+    val categoryStats: List<CategoryStatistics> = emptyList(),
+    val periodLabel: String = ""
 )
 
-class StatisticsViewModel(
-    private val storageManager: FileStorageManager
-) : ViewModel() {
+class StatisticsViewModel(private val context: Context) : ViewModel() {
+
+    private val storageManager = FileStorageManager(context)
 
     private val _uiState = MutableStateFlow(StatisticsUiState())
     val uiState: StateFlow<StatisticsUiState> = _uiState.asStateFlow()
-
-    private var allTransactions: List<Transaction> = emptyList()
-    private var categories: List<Category> = emptyList()
-    private var currentCalendar = Calendar.getInstance()
 
     init {
         loadData()
     }
 
-    fun loadData() {
+    fun setPeriodType(type: String) {
+        _uiState.update { it.copy(periodType = type) }
+        loadData()
+    }
+
+    private fun loadData() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-
             try {
                 val bookId = storageManager.getCurrentBookId()
-                allTransactions = storageManager.getTransactions(bookId)
-                categories = storageManager.getCategories()
+                val transactions = storageManager.getTransactions(bookId)
+                val categories = storageManager.getCategories()
 
-                updateStats()
+                val (startTime, endTime, periodLabel) = getPeriodRange(_uiState.value.periodType)
+
+                val periodTransactions = transactions.filter { it.date in startTime..endTime }
+
+                val totalIncome = periodTransactions
+                    .filter { it.type == TransactionType.INCOME }
+                    .sumOf { it.amount }
+                val totalExpense = periodTransactions
+                    .filter { it.type == TransactionType.EXPENSE }
+                    .sumOf { it.amount }
+
+                // 按分类统计支出
+                val expenseByCategory = periodTransactions
+                    .filter { it.type == TransactionType.EXPENSE }
+                    .groupBy { it.categoryId }
+                    .map { (categoryId, txns) ->
+                        val category = categories.find { it.id == categoryId }
+                        CategoryStatistics(
+                            categoryId = categoryId,
+                            categoryName = category?.name ?: "未知",
+                            categoryIcon = category?.icon ?: "more_horizontal",
+                            categoryColor = category?.color ?: "#808080",
+                            amount = txns.sumOf { it.amount },
+                            percentage = if (totalExpense > 0) txns.sumOf { it.amount } / totalExpense else 0.0,
+                            count = txns.size
+                        )
+                    }
+                    .sortedByDescending { it.amount }
+
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        totalIncome = totalIncome,
+                        totalExpense = totalExpense,
+                        balance = totalIncome - totalExpense,
+                        categoryStats = expenseByCategory,
+                        periodLabel = periodLabel
+                    )
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
                 _uiState.update { it.copy(isLoading = false) }
@@ -77,253 +103,34 @@ class StatisticsViewModel(
         }
     }
 
-    fun setPeriod(index: Int) {
-        _uiState.update { it.copy(periodIndex = index) }
-        currentCalendar = Calendar.getInstance()
-        updateStats()
-    }
-
-    fun setType(index: Int) {
-        _uiState.update { it.copy(typeIndex = index) }
-        updateStats()
-    }
-
-    fun previousPeriod() {
-        when (_uiState.value.periodIndex) {
-            0 -> currentCalendar.add(Calendar.WEEK_OF_YEAR, -1)
-            1 -> currentCalendar.add(Calendar.MONTH, -1)
-            2 -> currentCalendar.add(Calendar.YEAR, -1)
-        }
-        updateStats()
-    }
-
-    fun nextPeriod() {
-        when (_uiState.value.periodIndex) {
-            0 -> currentCalendar.add(Calendar.WEEK_OF_YEAR, 1)
-            1 -> currentCalendar.add(Calendar.MONTH, 1)
-            2 -> currentCalendar.add(Calendar.YEAR, 1)
-        }
-        updateStats()
-    }
-
-    private fun updateStats() {
-        val state = _uiState.value
-        val (startTime, endTime, label, days) = getPeriodRange(state.periodIndex)
-        val previousPeriodInfo = getPreviousPeriodRange(state.periodIndex)
-
-        val type = if (state.typeIndex == 0) TransactionType.EXPENSE else TransactionType.INCOME
-
-        val periodTransactions = allTransactions.filter {
-            it.date in startTime..endTime && it.type == type
-        }
-
-        val previousPeriodTransactions = allTransactions.filter {
-            it.date in previousPeriodInfo.startTime..previousPeriodInfo.endTime && it.type == type
-        }
-
-        val totalAmount = periodTransactions.sumOf { it.amount }
-        val previousPeriodAmount = previousPeriodTransactions.sumOf { it.amount }
-        val transactionCount = periodTransactions.size
-        val dailyAverage = if (days > 0) totalAmount / days else 0.0
-
-        // 按分类统计
-        val categoryAmounts = periodTransactions.groupBy { it.categoryId }
-        val categoryStats = categoryAmounts.map { (categoryId, transactions) ->
-            val category = categories.find { it.id == categoryId }
-            val amount = transactions.sumOf { it.amount }
-            CategoryStat(
-                categoryId = categoryId,
-                categoryName = category?.name ?: "未知",
-                categoryIcon = category?.icon ?: "more_horizontal",
-                categoryColor = category?.color ?: "#A3A3A3",
-                amount = amount,
-                percentage = if (totalAmount > 0) (amount / totalAmount).toFloat() else 0f,
-                count = transactions.size
-            )
-        }.sortedByDescending { it.amount }
-
-        // 生成每日/每周/每月数据用于图表
-        val dailyData = generateDailyData(periodTransactions, state.periodIndex, startTime, endTime)
-        val monthlyData = if (state.periodIndex == 2) {
-            generateMonthlyData(periodTransactions, startTime)
-        } else emptyList()
-
-        _uiState.update {
-            it.copy(
-                isLoading = false,
-                periodLabel = label,
-                totalAmount = totalAmount,
-                previousPeriodAmount = previousPeriodAmount,
-                transactionCount = transactionCount,
-                dailyAverage = dailyAverage,
-                categoryStats = categoryStats,
-                dailyData = dailyData,
-                monthlyData = monthlyData
-            )
-        }
-    }
-
-    private fun generateDailyData(
-        transactions: List<Transaction>,
-        periodIndex: Int,
-        startTime: Long,
-        endTime: Long
-    ): List<DailyData> {
+    private fun getPeriodRange(type: String): Triple<Long, Long, String> {
         val cal = Calendar.getInstance()
+        val end = cal.timeInMillis
 
-        return when (periodIndex) {
-            0 -> { // 周 - 显示7天
-                val weekDays = listOf("一", "二", "三", "四", "五", "六", "日")
-                weekDays.mapIndexed { index, day ->
-                    cal.timeInMillis = startTime
-                    cal.add(Calendar.DAY_OF_WEEK, index)
-                    val dayStart = cal.timeInMillis
-                    cal.set(Calendar.HOUR_OF_DAY, 23)
-                    cal.set(Calendar.MINUTE, 59)
-                    val dayEnd = cal.timeInMillis
-
-                    val amount = transactions
-                        .filter { it.date in dayStart..dayEnd }
-                        .sumOf { it.amount }
-
-                    DailyData(day, amount.toFloat())
-                }
+        return when (type) {
+            "week" -> {
+                cal.add(Calendar.DAY_OF_YEAR, -7)
+                Triple(cal.timeInMillis, end, "近7天")
             }
-            1 -> { // 月 - 显示最近7天或按周统计
-                cal.timeInMillis = endTime
-                (6 downTo 0).map { i ->
-                    cal.timeInMillis = endTime
-                    cal.add(Calendar.DAY_OF_MONTH, -i)
-                    val day = cal.get(Calendar.DAY_OF_MONTH)
-
-                    cal.set(Calendar.HOUR_OF_DAY, 0)
-                    cal.set(Calendar.MINUTE, 0)
-                    val dayStart = cal.timeInMillis
-                    cal.set(Calendar.HOUR_OF_DAY, 23)
-                    cal.set(Calendar.MINUTE, 59)
-                    val dayEnd = cal.timeInMillis
-
-                    val amount = transactions
-                        .filter { it.date in dayStart..dayEnd }
-                        .sumOf { it.amount }
-
-                    DailyData("$day", amount.toFloat())
-                }
-            }
-            else -> emptyList()
-        }
-    }
-
-    private fun generateMonthlyData(transactions: List<Transaction>, yearStart: Long): List<DailyData> {
-        val cal = Calendar.getInstance()
-        val months = listOf("1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月")
-
-        return months.mapIndexed { index, month ->
-            cal.timeInMillis = yearStart
-            cal.set(Calendar.MONTH, index)
-            cal.set(Calendar.DAY_OF_MONTH, 1)
-            cal.set(Calendar.HOUR_OF_DAY, 0)
-            val monthStart = cal.timeInMillis
-
-            cal.set(Calendar.DAY_OF_MONTH, cal.getActualMaximum(Calendar.DAY_OF_MONTH))
-            cal.set(Calendar.HOUR_OF_DAY, 23)
-            cal.set(Calendar.MINUTE, 59)
-            val monthEnd = cal.timeInMillis
-
-            val amount = transactions
-                .filter { it.date in monthStart..monthEnd }
-                .sumOf { it.amount }
-
-            DailyData(month, amount.toFloat())
-        }
-    }
-
-    private fun getPreviousPeriodRange(periodIndex: Int): PeriodInfo {
-        val cal = currentCalendar.clone() as Calendar
-
-        when (periodIndex) {
-            0 -> cal.add(Calendar.WEEK_OF_YEAR, -1)
-            1 -> cal.add(Calendar.MONTH, -1)
-            2 -> cal.add(Calendar.YEAR, -1)
-        }
-
-        val tempCalendar = currentCalendar
-        currentCalendar = cal
-        val result = getPeriodRange(periodIndex)
-        currentCalendar = tempCalendar
-
-        return result
-    }
-
-    private fun getPeriodRange(periodIndex: Int): PeriodInfo {
-        val cal = currentCalendar.clone() as Calendar
-
-        return when (periodIndex) {
-            0 -> { // 周
-                cal.set(Calendar.DAY_OF_WEEK, cal.firstDayOfWeek)
+            "year" -> {
+                cal.set(Calendar.DAY_OF_YEAR, 1)
                 cal.set(Calendar.HOUR_OF_DAY, 0)
                 cal.set(Calendar.MINUTE, 0)
-                cal.set(Calendar.SECOND, 0)
-                val start = cal.timeInMillis
-
-                cal.add(Calendar.DAY_OF_WEEK, 6)
-                cal.set(Calendar.HOUR_OF_DAY, 23)
-                cal.set(Calendar.MINUTE, 59)
-                cal.set(Calendar.SECOND, 59)
-                val end = cal.timeInMillis
-
-                val label = formatDate(start) + " - " + formatDate(end)
-                PeriodInfo(start, end, label, 7)
+                Triple(cal.timeInMillis, end, "${cal.get(Calendar.YEAR)}年")
             }
-            1 -> { // 月
+            else -> {
                 cal.set(Calendar.DAY_OF_MONTH, 1)
                 cal.set(Calendar.HOUR_OF_DAY, 0)
                 cal.set(Calendar.MINUTE, 0)
-                cal.set(Calendar.SECOND, 0)
-                val start = cal.timeInMillis
-
-                val daysInMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH)
-                cal.set(Calendar.DAY_OF_MONTH, daysInMonth)
-                cal.set(Calendar.HOUR_OF_DAY, 23)
-                cal.set(Calendar.MINUTE, 59)
-                cal.set(Calendar.SECOND, 59)
-                val end = cal.timeInMillis
-
-                val label = formatMonth(start)
-                PeriodInfo(start, end, label, daysInMonth)
-            }
-            else -> { // 年
-                cal.set(Calendar.MONTH, Calendar.JANUARY)
-                cal.set(Calendar.DAY_OF_MONTH, 1)
-                cal.set(Calendar.HOUR_OF_DAY, 0)
-                cal.set(Calendar.MINUTE, 0)
-                cal.set(Calendar.SECOND, 0)
-                val start = cal.timeInMillis
-
-                cal.set(Calendar.MONTH, Calendar.DECEMBER)
-                cal.set(Calendar.DAY_OF_MONTH, 31)
-                cal.set(Calendar.HOUR_OF_DAY, 23)
-                cal.set(Calendar.MINUTE, 59)
-                cal.set(Calendar.SECOND, 59)
-                val end = cal.timeInMillis
-
-                val label = "${cal.get(Calendar.YEAR)}年"
-                PeriodInfo(start, end, label, 365)
+                Triple(cal.timeInMillis, end, "${cal.get(Calendar.MONTH) + 1}月")
             }
         }
     }
 }
 
-private data class PeriodInfo(
-    val startTime: Long,
-    val endTime: Long,
-    val label: String,
-    val days: Int
-)
-
 class StatisticsViewModelFactory(private val context: Context) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return StatisticsViewModel(FileStorageManager(context.applicationContext)) as T
+        return StatisticsViewModel(context.applicationContext) as T
     }
 }

@@ -264,6 +264,39 @@ data class Currency(
     val lastUpdated: Long = System.currentTimeMillis()
 )
 
+// ===== 账户（简化版）=====
+@Serializable
+data class Account(
+    val id: String = UUID.randomUUID().toString(),
+    val name: String,
+    val type: AssetType,
+    val balance: Double = 0.0,
+    val icon: String = "account_balance_wallet",
+    val color: String = "#5B8DEF",
+    val includeInTotal: Boolean = true,
+    val createdAt: Long = System.currentTimeMillis(),
+    val updatedAt: Long = System.currentTimeMillis()
+)
+
+// ===== 设置 =====
+@Serializable
+data class Settings(
+    val defaultCurrency: String = "CNY",
+    val enableNotifications: Boolean = true,
+    val enableBudgetAlert: Boolean = true,
+    val themeMode: String = "system",
+    val appLockEnabled: Boolean = false,
+    val biometricEnabled: Boolean = false,
+    val autoClassifyEnabled: Boolean = true
+)
+
+// ===== AI提供商 =====
+@Serializable
+enum class AIProvider {
+    DEEPSEEK,
+    GROQ
+}
+
 // ===== 数据容器 =====
 @Serializable
 data class AccountBooksData(

@@ -87,7 +87,7 @@ class RecordViewModel(
                             selectedAccountId = transaction.accountId,
                             selectedAccountName = account?.name ?: "现金",
                             toAccountId = transaction.toAccountId,
-                            note = transaction.note,
+                            note = transaction.note ?: "",
                             date = transaction.date,
                             tags = transaction.tags
                         )

@@ -22,15 +22,10 @@ import com.myaiapp.ui.theme.*
 @Composable
 fun SettingsScreen(
     onBack: () -> Unit,
-    onNavigateToBookManage: () -> Unit,
-    onNavigateToCategoryManage: () -> Unit,
-    onNavigateToAISettings: () -> Unit,
     onNavigateToBackup: () -> Unit,
     onNavigateToImport: () -> Unit,
-    onNavigateToExport: () -> Unit,
     onNavigateToReminder: () -> Unit,
     onNavigateToCurrency: () -> Unit,
-    onNavigateToCloudSync: () -> Unit,
     viewModel: SettingsViewModel = viewModel(factory = SettingsViewModelFactory(LocalContext.current))
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -50,68 +45,6 @@ fun SettingsScreen(
                 .padding(paddingValues),
             contentPadding = PaddingValues(vertical = AppDimens.SpaceLG)
         ) {
-            // 账本设置
-            item {
-                SettingsSection(title = "账本") {
-                    SettingsItem(
-                        icon = Icons.Outlined.Book,
-                        title = "账本管理",
-                        subtitle = "当前: ${uiState.currentBookName}",
-                        onClick = onNavigateToBookManage
-                    )
-                    Divider(modifier = Modifier.padding(start = 56.dp), color = AppColors.Gray100)
-                    SettingsItem(
-                        icon = Icons.Outlined.Category,
-                        title = "分类管理",
-                        subtitle = "自定义收支分类",
-                        onClick = onNavigateToCategoryManage
-                    )
-                }
-            }
-
-            // AI设置
-            item {
-                SettingsSection(title = "AI功能") {
-                    SettingsItem(
-                        icon = Icons.Outlined.SmartToy,
-                        title = "AI设置",
-                        subtitle = if (uiState.aiEnabled) "已配置" else "未配置",
-                        onClick = onNavigateToAISettings
-                    )
-                    Divider(modifier = Modifier.padding(start = 56.dp), color = AppColors.Gray100)
-                    SettingsSwitchItem(
-                        icon = Icons.Outlined.AutoAwesome,
-                        title = "智能分类",
-                        subtitle = "自动识别消费分类",
-                        checked = uiState.autoClassifyEnabled,
-                        onCheckedChange = { viewModel.setAutoClassify(it) }
-                    )
-                }
-            }
-
-            // 安全设置
-            item {
-                SettingsSection(title = "安全") {
-                    SettingsSwitchItem(
-                        icon = Icons.Outlined.Lock,
-                        title = "应用锁",
-                        subtitle = "启动时需要验证",
-                        checked = uiState.appLockEnabled,
-                        onCheckedChange = { viewModel.setAppLock(it) }
-                    )
-                    if (uiState.appLockEnabled) {
-                        Divider(modifier = Modifier.padding(start = 56.dp), color = AppColors.Gray100)
-                        SettingsSwitchItem(
-                            icon = Icons.Outlined.Fingerprint,
-                            title = "生物识别",
-                            subtitle = "使用指纹或面容解锁",
-                            checked = uiState.biometricEnabled,
-                            onCheckedChange = { viewModel.setBiometric(it) }
-                        )
-                    }
-                }
-            }
-
             // 通知设置
             item {
                 SettingsSection(title = "通知") {
@@ -135,7 +68,7 @@ fun SettingsScreen(
                             "light" -> "浅色模式"
                             else -> "深色模式"
                         },
-                        onClick = { /* TODO: Show theme picker */ }
+                        onClick = { }
                     )
                     Divider(modifier = Modifier.padding(start = 56.dp), color = AppColors.Gray100)
                     SettingsItem(
@@ -163,20 +96,6 @@ fun SettingsScreen(
                         subtitle = "支持微信/支付宝CSV",
                         onClick = onNavigateToImport
                     )
-                    Divider(modifier = Modifier.padding(start = 56.dp), color = AppColors.Gray100)
-                    SettingsItem(
-                        icon = Icons.Outlined.FileUpload,
-                        title = "导出数据",
-                        subtitle = "导出CSV/Excel/PDF",
-                        onClick = onNavigateToExport
-                    )
-                    Divider(modifier = Modifier.padding(start = 56.dp), color = AppColors.Gray100)
-                    SettingsItem(
-                        icon = Icons.Outlined.CloudSync,
-                        title = "云同步",
-                        subtitle = "数据备份与云端同步",
-                        onClick = onNavigateToCloudSync
-                    )
                 }
             }
 
@@ -188,12 +107,6 @@ fun SettingsScreen(
                         title = "版本",
                         subtitle = "1.0.0",
                         onClick = { }
-                    )
-                    Divider(modifier = Modifier.padding(start = 56.dp), color = AppColors.Gray100)
-                    SettingsItem(
-                        icon = Icons.Outlined.Help,
-                        title = "帮助与反馈",
-                        onClick = { /* TODO: Open help */ }
                     )
                 }
             }
@@ -225,30 +138,4 @@ private fun SettingsSection(
             Column(content = content)
         }
     }
-}
-
-@Composable
-private fun SettingsSwitchItem(
-    icon: ImageVector,
-    title: String,
-    subtitle: String? = null,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
-) {
-    SettingsItem(
-        icon = icon,
-        title = title,
-        subtitle = subtitle,
-        onClick = { onCheckedChange(!checked) },
-        trailing = {
-            Switch(
-                checked = checked,
-                onCheckedChange = onCheckedChange,
-                colors = SwitchDefaults.colors(
-                    checkedTrackColor = AppColors.Green,
-                    checkedThumbColor = Color.White
-                )
-            )
-        }
-    )
 }
