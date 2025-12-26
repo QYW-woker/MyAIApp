@@ -29,7 +29,8 @@ data class BudgetItemData(
     val categoryIcon: String,
     val categoryColor: String,
     val budget: Double,
-    val spent: Double
+    val spent: Double,
+    val budgetData: Budget? = null
 )
 
 data class BudgetUiState(
@@ -86,7 +87,8 @@ class BudgetViewModel(
                         categoryIcon = category?.icon ?: "more_horizontal",
                         categoryColor = category?.color ?: "#5B8DEF",
                         budget = budget.amount,
-                        spent = spent
+                        spent = spent,
+                        budgetData = budget
                     )
                 }
 
@@ -136,10 +138,26 @@ class BudgetViewModel(
         }
     }
 
-    fun deleteBudget(budgetId: String) {
+    fun deleteBudget(budget: Budget) {
         viewModelScope.launch {
             try {
-                storageManager.deleteBudget(budgetId)
+                storageManager.deleteBudget(budget.id)
+                loadData()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun saveBudget(budget: Budget) {
+        viewModelScope.launch {
+            try {
+                val bookId = storageManager.getCurrentBookId()
+                val savedBudget = budget.copy(
+                    bookId = bookId,
+                    type = if (budget.categoryId == null) BudgetType.TOTAL else BudgetType.CATEGORY
+                )
+                storageManager.saveBudget(savedBudget)
                 loadData()
             } catch (e: Exception) {
                 e.printStackTrace()

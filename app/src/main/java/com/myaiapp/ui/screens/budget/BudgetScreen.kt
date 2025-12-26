@@ -28,7 +28,8 @@ fun BudgetScreen(
     viewModel: BudgetViewModel = viewModel(factory = BudgetViewModelFactory(LocalContext.current))
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    var showAddDialog by remember { mutableStateOf(false) }
+    var showAddSheet by remember { mutableStateOf(false) }
+    var showEditSheet by remember { mutableStateOf<BudgetItemData?>(null) }
 
     Scaffold(
         topBar = {
@@ -36,7 +37,7 @@ fun BudgetScreen(
                 title = "预算管理",
                 onBackClick = onBack,
                 actions = {
-                    IconButton(onClick = { showAddDialog = true }) {
+                    IconButton(onClick = { showAddSheet = true }) {
                         Icon(Icons.Outlined.Add, contentDescription = "添加预算")
                     }
                 }
@@ -77,7 +78,7 @@ fun BudgetScreen(
                         title = "暂无预算",
                         subtitle = "点击右上角添加预算",
                         actionText = "添加预算",
-                        onAction = { showAddDialog = true }
+                        onAction = { showAddSheet = true }
                     )
                 }
             } else {
@@ -89,21 +90,38 @@ fun BudgetScreen(
                         categoryColor = budgetItem.categoryColor,
                         spent = budgetItem.spent,
                         budget = budgetItem.budget,
-                        onClick = { /* TODO: Edit budget */ }
+                        onClick = { showEditSheet = budgetItem }
                     )
                 }
             }
         }
     }
 
-    // 添加预算对话框
-    if (showAddDialog) {
-        AddBudgetDialog(
+    // 添加预算弹窗
+    if (showAddSheet) {
+        BudgetEditSheet(
             categories = uiState.categories,
-            onDismiss = { showAddDialog = false },
-            onConfirm = { name, categoryId, amount ->
-                viewModel.addBudget(name, categoryId, amount)
-                showAddDialog = false
+            onDismiss = { showAddSheet = false },
+            onSave = { budget ->
+                viewModel.saveBudget(budget)
+                showAddSheet = false
+            }
+        )
+    }
+
+    // 编辑预算弹窗
+    showEditSheet?.let { budgetItem ->
+        BudgetEditSheet(
+            budget = budgetItem.budgetData,
+            categories = uiState.categories,
+            onDismiss = { showEditSheet = null },
+            onSave = { budget ->
+                viewModel.saveBudget(budget)
+                showEditSheet = null
+            },
+            onDelete = { budget ->
+                viewModel.deleteBudget(budget)
+                showEditSheet = null
             }
         )
     }
@@ -253,53 +271,3 @@ private fun BudgetItem(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun AddBudgetDialog(
-    categories: List<BudgetCategory>,
-    onDismiss: () -> Unit,
-    onConfirm: (name: String, categoryId: String?, amount: Double) -> Unit
-) {
-    var name by remember { mutableStateOf("") }
-    var selectedCategoryId by remember { mutableStateOf<String?>(null) }
-    var amount by remember { mutableStateOf("") }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("添加预算") },
-        text = {
-            Column {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("预算名称") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                OutlinedTextField(
-                    value = amount,
-                    onValueChange = { amount = it.filter { c -> c.isDigit() || c == '.' } },
-                    label = { Text("预算金额") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    val budgetAmount = amount.toDoubleOrNull() ?: 0.0
-                    if (name.isNotBlank() && budgetAmount > 0) {
-                        onConfirm(name, selectedCategoryId, budgetAmount)
-                    }
-                }
-            ) {
-                Text("确定")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("取消")
-            }
-        }
-    )
-}

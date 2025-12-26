@@ -31,6 +31,9 @@ fun AssetsScreen(
     viewModel: AssetsViewModel = viewModel(factory = AssetsViewModelFactory(LocalContext.current))
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var showAddSheet by remember { mutableStateOf(false) }
+    var showEditSheet by remember { mutableStateOf<AssetAccount?>(null) }
+    var showTransferSheet by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -38,7 +41,10 @@ fun AssetsScreen(
                 title = "我的资产",
                 onBackClick = onBack,
                 actions = {
-                    IconButton(onClick = { /* TODO: Add account */ }) {
+                    IconButton(onClick = { showTransferSheet = true }) {
+                        Icon(Icons.Outlined.SwapHoriz, contentDescription = "转账")
+                    }
+                    IconButton(onClick = { showAddSheet = true }) {
                         Icon(Icons.Outlined.Add, contentDescription = "添加账户")
                     }
                 }
@@ -77,7 +83,7 @@ fun AssetsScreen(
                 items(accounts) { account ->
                     AccountItem(
                         account = account,
-                        onClick = { /* TODO: Navigate to account detail */ }
+                        onClick = { showEditSheet = account }
                     )
                 }
 
@@ -86,6 +92,45 @@ fun AssetsScreen(
                 }
             }
         }
+    }
+
+    // 添加账户弹窗
+    if (showAddSheet) {
+        AccountEditSheet(
+            onDismiss = { showAddSheet = false },
+            onSave = { account ->
+                viewModel.saveAccount(account)
+                showAddSheet = false
+            }
+        )
+    }
+
+    // 编辑账户弹窗
+    showEditSheet?.let { account ->
+        AccountEditSheet(
+            account = account,
+            onDismiss = { showEditSheet = null },
+            onSave = { updatedAccount ->
+                viewModel.saveAccount(updatedAccount)
+                showEditSheet = null
+            },
+            onDelete = { deletedAccount ->
+                viewModel.deleteAccount(deletedAccount)
+                showEditSheet = null
+            }
+        )
+    }
+
+    // 转账弹窗
+    if (showTransferSheet) {
+        TransferSheet(
+            accounts = uiState.accounts,
+            onDismiss = { showTransferSheet = false },
+            onTransfer = { fromId, toId, amount, note ->
+                viewModel.transfer(fromId, toId, amount, note)
+                showTransferSheet = false
+            }
+        )
     }
 }
 

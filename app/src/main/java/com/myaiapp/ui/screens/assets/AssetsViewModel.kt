@@ -86,6 +86,46 @@ class AssetsViewModel(
             }
         }
     }
+
+    fun saveAccount(account: AssetAccount) {
+        viewModelScope.launch {
+            storageManager.saveAssetAccount(account)
+            loadData()
+        }
+    }
+
+    fun deleteAccount(account: AssetAccount) {
+        viewModelScope.launch {
+            storageManager.deleteAssetAccount(account.id)
+            loadData()
+        }
+    }
+
+    fun transfer(fromId: String, toId: String, amount: Double, note: String) {
+        viewModelScope.launch {
+            val accounts = storageManager.getAssetAccounts()
+            val fromAccount = accounts.find { it.id == fromId }
+            val toAccount = accounts.find { it.id == toId }
+
+            if (fromAccount != null && toAccount != null) {
+                // 更新转出账户余额
+                val updatedFrom = fromAccount.copy(
+                    balance = fromAccount.balance - amount,
+                    updatedAt = System.currentTimeMillis()
+                )
+                storageManager.saveAssetAccount(updatedFrom)
+
+                // 更新转入账户余额
+                val updatedTo = toAccount.copy(
+                    balance = toAccount.balance + amount,
+                    updatedAt = System.currentTimeMillis()
+                )
+                storageManager.saveAssetAccount(updatedTo)
+
+                loadData()
+            }
+        }
+    }
 }
 
 class AssetsViewModelFactory(private val context: Context) : ViewModelProvider.Factory {
