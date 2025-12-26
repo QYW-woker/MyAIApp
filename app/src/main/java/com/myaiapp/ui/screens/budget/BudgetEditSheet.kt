@@ -20,6 +20,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.myaiapp.data.local.model.Budget
+import com.myaiapp.data.local.model.BudgetPeriod
+import com.myaiapp.data.local.model.BudgetType
 import com.myaiapp.data.local.model.Category
 import com.myaiapp.ui.components.CategoryIcon
 import com.myaiapp.ui.components.parseColor
@@ -33,7 +35,8 @@ fun BudgetEditSheet(
     onDismiss: () -> Unit,
     onSave: (Budget) -> Unit,
     budget: Budget? = null,
-    onDelete: ((Budget) -> Unit)? = null
+    onDelete: ((Budget) -> Unit)? = null,
+    bookId: String = "default"
 ) {
     val isEdit = budget != null
     var name by remember { mutableStateOf(budget?.name ?: "") }
@@ -184,10 +187,12 @@ fun BudgetEditSheet(
                         val newBudget = Budget(
                             id = budget?.id ?: UUID.randomUUID().toString(),
                             name = name.trim(),
-                            amount = amountValue,
+                            type = if (selectedCategoryId.isNotEmpty()) BudgetType.CATEGORY else BudgetType.TOTAL,
                             categoryId = selectedCategoryId.ifEmpty { null },
-                            period = "month",
-                            startDate = System.currentTimeMillis()
+                            amount = amountValue,
+                            period = BudgetPeriod.MONTHLY,
+                            startDate = budget?.startDate ?: System.currentTimeMillis(),
+                            bookId = budget?.bookId ?: bookId
                         )
                         onSave(newBudget)
                     }

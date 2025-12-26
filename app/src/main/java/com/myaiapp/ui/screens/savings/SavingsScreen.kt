@@ -13,6 +13,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.myaiapp.data.local.model.SavingsPlan
 import com.myaiapp.ui.components.*
 import com.myaiapp.ui.theme.*
 
@@ -23,12 +24,20 @@ fun SavingsScreen(
     viewModel: SavingsViewModel = viewModel(factory = SavingsViewModelFactory(LocalContext.current))
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var showAddSheet by remember { mutableStateOf(false) }
+    var showDepositSheet by remember { mutableStateOf<SavingsPlan?>(null) }
+    var showEditSheet by remember { mutableStateOf<SavingsPlan?>(null) }
 
     Scaffold(
         topBar = {
             AppTopBar(
                 title = "存钱计划",
-                onBackClick = onBack
+                onBackClick = onBack,
+                actions = {
+                    IconButton(onClick = { showAddSheet = true }) {
+                        Icon(Icons.Outlined.Add, contentDescription = "添加计划")
+                    }
+                }
             )
         }
     ) { paddingValues ->
@@ -65,18 +74,69 @@ fun SavingsScreen(
                     EmptyState(
                         icon = Icons.Outlined.Add,
                         title = "暂无存钱计划",
-                        subtitle = "存钱计划功能即将推出"
+                        subtitle = "点击右上角添加您的第一个存钱计划",
+                        actionText = "添加计划",
+                        onAction = { showAddSheet = true }
                     )
                 }
             } else {
                 items(uiState.plans) { plan ->
-                    SavingsCardCompact(
+                    SavingsCard(
                         plan = plan,
-                        onClick = { },
+                        onClick = { showDepositSheet = plan },
                         modifier = Modifier.padding(horizontal = AppDimens.SpaceLG, vertical = 6.dp)
                     )
                 }
             }
         }
+    }
+
+    // 添加计划弹窗
+    if (showAddSheet) {
+        SavingsEditSheet(
+            onDismiss = { showAddSheet = false },
+            onSave = { plan ->
+                viewModel.savePlan(plan)
+                showAddSheet = false
+            }
+        )
+    }
+
+    // 编辑计划弹窗
+    showEditSheet?.let { plan ->
+        SavingsEditSheet(
+            plan = plan,
+            onDismiss = { showEditSheet = null },
+            onSave = { updatedPlan ->
+                viewModel.savePlan(updatedPlan)
+                showEditSheet = null
+            },
+            onDelete = { deletePlan ->
+                viewModel.deletePlan(deletePlan)
+                showEditSheet = null
+            }
+        )
+    }
+
+    // 存取弹窗
+    showDepositSheet?.let { plan ->
+        val records = uiState.records[plan.id] ?: emptyList()
+        DepositSheet(
+            plan = plan,
+            records = records.sortedByDescending { it.date },
+            onDismiss = { showDepositSheet = null },
+            onDeposit = { amount, note ->
+                viewModel.deposit(plan.id, amount, note)
+                showDepositSheet = null
+            },
+            onWithdraw = { amount, note ->
+                viewModel.withdraw(plan.id, amount, note)
+                showDepositSheet = null
+            },
+            onEditPlan = {
+                showDepositSheet = null
+                showEditSheet = plan
+            }
+        )
     }
 }
