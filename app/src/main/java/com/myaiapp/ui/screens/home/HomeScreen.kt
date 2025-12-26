@@ -34,6 +34,7 @@ fun HomeScreen(
     onNavigateToSavings: () -> Unit,
     onNavigateToCalendar: () -> Unit,
     onNavigateToSettings: () -> Unit,
+    onNavigateToSearch: () -> Unit,
     onAddRecord: () -> Unit,
     viewModel: HomeViewModel = viewModel(factory = HomeViewModelFactory(LocalContext.current))
 ) {
@@ -51,6 +52,10 @@ fun HomeScreen(
                 title = uiState.currentBookName,
                 subtitle = uiState.monthLabel,
                 actions = {
+                    CircleIconButton(
+                        icon = Icons.Outlined.Search,
+                        onClick = onNavigateToSearch
+                    )
                     CircleIconButton(
                         icon = Icons.Outlined.CalendarMonth,
                         onClick = onNavigateToCalendar
