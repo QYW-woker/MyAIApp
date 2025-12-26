@@ -4,14 +4,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -29,12 +27,19 @@ fun BudgetScreen(
     viewModel: BudgetViewModel = viewModel(factory = BudgetViewModelFactory(LocalContext.current))
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var showAddSheet by remember { mutableStateOf(false) }
+    var editingBudget by remember { mutableStateOf<Budget?>(null) }
 
     Scaffold(
         topBar = {
             AppTopBar(
                 title = "预算管理",
-                onBackClick = onBack
+                onBackClick = onBack,
+                actions = {
+                    IconButton(onClick = { showAddSheet = true }) {
+                        Icon(Icons.Outlined.Add, contentDescription = "添加预算")
+                    }
+                }
             )
         }
     ) { paddingValues ->
@@ -69,23 +74,56 @@ fun BudgetScreen(
                     EmptyState(
                         icon = Icons.Outlined.Add,
                         title = "暂无预算",
-                        subtitle = "预算功能即将推出"
+                        subtitle = "点击右上角添加预算",
+                        actionText = "添加预算",
+                        onAction = { showAddSheet = true }
                     )
                 }
             } else {
                 items(uiState.budgets) { budget ->
                     val category = uiState.categories.find { it.id == budget.categoryId }
+                    val spent = uiState.budgetSpentMap[budget.id] ?: 0.0
                     BudgetItem(
                         name = budget.name,
                         categoryName = category?.name,
                         categoryIcon = category?.icon ?: "more_horizontal",
                         categoryColor = category?.color ?: "#808080",
-                        spent = 0.0,
-                        budget = budget.amount
+                        spent = spent,
+                        budget = budget.amount,
+                        onClick = { editingBudget = budget }
                     )
                 }
             }
         }
+    }
+
+    // 添加预算弹窗
+    if (showAddSheet) {
+        BudgetEditSheet(
+            categories = uiState.categories,
+            onDismiss = { showAddSheet = false },
+            onSave = { budget ->
+                viewModel.saveBudget(budget)
+                showAddSheet = false
+            }
+        )
+    }
+
+    // 编辑预算弹窗
+    editingBudget?.let { budget ->
+        BudgetEditSheet(
+            budget = budget,
+            categories = uiState.categories,
+            onDismiss = { editingBudget = null },
+            onSave = { updatedBudget ->
+                viewModel.saveBudget(updatedBudget)
+                editingBudget = null
+            },
+            onDelete = { deleteBudget ->
+                viewModel.deleteBudget(deleteBudget)
+                editingBudget = null
+            }
+        )
     }
 }
 
@@ -165,13 +203,15 @@ private fun BudgetItem(
     categoryIcon: String,
     categoryColor: String,
     spent: Double,
-    budget: Double
+    budget: Double,
+    onClick: () -> Unit
 ) {
     val progress = if (budget > 0) (spent / budget).coerceIn(0.0, 1.0).toFloat() else 0f
     val isOverBudget = spent > budget
 
     AppCard(
-        modifier = Modifier.padding(horizontal = AppDimens.SpaceLG, vertical = 4.dp)
+        modifier = Modifier.padding(horizontal = AppDimens.SpaceLG, vertical = 4.dp),
+        onClick = onClick
     ) {
         Column(
             modifier = Modifier.padding(AppDimens.SpaceLG)
