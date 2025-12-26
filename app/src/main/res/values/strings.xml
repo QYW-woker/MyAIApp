@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AI记账</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">首页</string>
+    <string name="nav_records">明细</string>
+    <string name="nav_add">记账</string>
+    <string name="nav_statistics">统计</string>
+    <string name="nav_assets">资产</string>
+
+    <!-- Transaction Types -->
+    <string name="expense">支出</string>
+    <string name="income">收入</string>
+    <string name="transfer">转账</string>
+
+    <!-- Common -->
+    <string name="save">保存</string>
+    <string name="cancel">取消</string>
+    <string name="delete">删除</string>
+    <string name="edit">编辑</string>
+    <string name="confirm">确认</string>
+    <string name="settings">设置</string>
+    <string name="balance">结余</string>
+    <string name="total">合计</string>
+    <string name="today">今天</string>
+    <string name="yesterday">昨天</string>
+    <string name="this_month">本月</string>
+    <string name="this_year">今年</string>
+
+    <!-- Budget -->
+    <string name="budget">预算</string>
+    <string name="remaining">剩余</string>
+    <string name="spent">已花</string>
+
+    <!-- Savings -->
+    <string name="savings_plan">存钱计划</string>
+    <string name="target_amount">目标金额</string>
+    <string name="current_amount">当前金额</string>
+
+    <!-- Widget -->
+    <string name="widget_name">快捷记账</string>
+    <string name="widget_description">快速添加收支记录</string>
+</resources>
