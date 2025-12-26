@@ -17,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.myaiapp.data.local.model.Budget
 import com.myaiapp.ui.components.*
 import com.myaiapp.ui.theme.*
 import com.myaiapp.util.formatAmount
@@ -28,19 +29,12 @@ fun BudgetScreen(
     viewModel: BudgetViewModel = viewModel(factory = BudgetViewModelFactory(LocalContext.current))
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    var showAddSheet by remember { mutableStateOf(false) }
-    var showEditSheet by remember { mutableStateOf<BudgetItemData?>(null) }
 
     Scaffold(
         topBar = {
             AppTopBar(
                 title = "预算管理",
-                onBackClick = onBack,
-                actions = {
-                    IconButton(onClick = { showAddSheet = true }) {
-                        Icon(Icons.Outlined.Add, contentDescription = "添加预算")
-                    }
-                }
+                onBackClick = onBack
             )
         }
     ) { paddingValues ->
@@ -55,8 +49,7 @@ fun BudgetScreen(
             item {
                 TotalBudgetCard(
                     totalBudget = uiState.totalBudget,
-                    totalSpent = uiState.totalSpent,
-                    remaining = uiState.remaining
+                    totalSpent = uiState.totalSpent
                 )
                 Spacer(modifier = Modifier.height(AppDimens.SpaceXL))
             }
@@ -76,63 +69,32 @@ fun BudgetScreen(
                     EmptyState(
                         icon = Icons.Outlined.Add,
                         title = "暂无预算",
-                        subtitle = "点击右上角添加预算",
-                        actionText = "添加预算",
-                        onAction = { showAddSheet = true }
+                        subtitle = "预算功能即将推出"
                     )
                 }
             } else {
-                items(uiState.budgets) { budgetItem ->
+                items(uiState.budgets) { budget ->
+                    val category = uiState.categories.find { it.id == budget.categoryId }
                     BudgetItem(
-                        name = budgetItem.name,
-                        categoryName = budgetItem.categoryName,
-                        categoryIcon = budgetItem.categoryIcon,
-                        categoryColor = budgetItem.categoryColor,
-                        spent = budgetItem.spent,
-                        budget = budgetItem.budget,
-                        onClick = { showEditSheet = budgetItem }
+                        name = budget.name,
+                        categoryName = category?.name,
+                        categoryIcon = category?.icon ?: "more_horizontal",
+                        categoryColor = category?.color ?: "#808080",
+                        spent = 0.0,
+                        budget = budget.amount
                     )
                 }
             }
         }
-    }
-
-    // 添加预算弹窗
-    if (showAddSheet) {
-        BudgetEditSheet(
-            categories = uiState.categories,
-            onDismiss = { showAddSheet = false },
-            onSave = { budget ->
-                viewModel.saveBudget(budget)
-                showAddSheet = false
-            }
-        )
-    }
-
-    // 编辑预算弹窗
-    showEditSheet?.let { budgetItem ->
-        BudgetEditSheet(
-            budget = budgetItem.budgetData,
-            categories = uiState.categories,
-            onDismiss = { showEditSheet = null },
-            onSave = { budget ->
-                viewModel.saveBudget(budget)
-                showEditSheet = null
-            },
-            onDelete = { budget ->
-                viewModel.deleteBudget(budget)
-                showEditSheet = null
-            }
-        )
     }
 }
 
 @Composable
 private fun TotalBudgetCard(
     totalBudget: Double,
-    totalSpent: Double,
-    remaining: Double
+    totalSpent: Double
 ) {
+    val remaining = totalBudget - totalSpent
     val progress = if (totalBudget > 0) (totalSpent / totalBudget).coerceIn(0.0, 1.0).toFloat() else 0f
     val isOverBudget = totalSpent > totalBudget
 
@@ -203,15 +165,13 @@ private fun BudgetItem(
     categoryIcon: String,
     categoryColor: String,
     spent: Double,
-    budget: Double,
-    onClick: () -> Unit
+    budget: Double
 ) {
     val progress = if (budget > 0) (spent / budget).coerceIn(0.0, 1.0).toFloat() else 0f
     val isOverBudget = spent > budget
 
     AppCard(
-        modifier = Modifier.padding(horizontal = AppDimens.SpaceLG, vertical = 4.dp),
-        onClick = onClick
+        modifier = Modifier.padding(horizontal = AppDimens.SpaceLG, vertical = 4.dp)
     ) {
         Column(
             modifier = Modifier.padding(AppDimens.SpaceLG)
@@ -270,4 +230,3 @@ private fun BudgetItem(
         }
     }
 }
-
